@@ -4,3 +4,4 @@
 
 void Initialization(const int length);
 void Simulation();
+void SimulationIISPH();

@@ -9,7 +9,12 @@ Particle::Particle() :
     density(REST_DENSITY),
     pressure(0.0f),
     isFluid(true),
-    ID(0) {}
+    ID(0),
+    predictedVelocity(Eigen::Vector3f(0.0f, 0.0f, 0.0f)),
+    sourceTerm(0.0f),
+    coefficient(0.0f),
+    diagonal(0.0f),
+    pressureAcceleration(Eigen::Vector3f(0.0f, 0.0f, 0.0f)) {}
 
 Eigen::Vector3i Particle::getCellNumber() {
 	int x = std::floor(position.x() / CELL_SIZE);

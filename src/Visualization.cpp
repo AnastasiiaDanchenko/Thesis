@@ -195,7 +195,8 @@ void Visualize() {
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
-        Simulation();
+        //Simulation();
+        SimulationIISPH();
 
         clearBuffers();
 

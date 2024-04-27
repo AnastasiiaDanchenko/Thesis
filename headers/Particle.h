@@ -21,4 +21,11 @@ public:
 
     Particle();
     Eigen::Vector3i getCellNumber();
+
+    // IISPH
+    Eigen::Vector3f predictedVelocity;
+    float sourceTerm;
+    float coefficient;
+    float diagonal;
+    Eigen::Vector3f pressureAcceleration;
 };

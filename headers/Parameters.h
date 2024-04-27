@@ -31,6 +31,10 @@ extern float STIFFNESS;
 extern float VISCOSITY;
 extern Eigen::Vector3f GRAVITY;
 
+// IISPH parameters
+extern float GAMMA;
+extern float OMEGA;
+
 extern std::string NS_METHOD;
 extern std::string SIMULATION;
 extern bool VISUALIZATION;

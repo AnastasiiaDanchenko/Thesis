@@ -17,6 +17,9 @@ float VISCOSITY;
 
 Eigen::Vector3f GRAVITY = Eigen::Vector3f(0.0f, -9.8f, 0.0f);
 
+float GAMMA = 1.0f;
+float OMEGA = 0.5f;
+
 std::string NS_METHOD;
 std::string SIMULATION;
 

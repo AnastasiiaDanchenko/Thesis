@@ -2,9 +2,18 @@
 
 void Simulation() {
     NSUniformGrid();
-    //QuadraticSearch();
     ComputeDensityPressure();
     ComputeAcceleration();
+    UpdateParticles();
+}
+
+void SimulationIISPH() {
+	NSUniformGrid();
+	ComputeDensity();
+    PredictVelocity();
+    ComputeDensityError();
+    ComputeLaplacian();
+    CompressionConvergence();
     UpdateParticles();
 }
 
