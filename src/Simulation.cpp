@@ -17,8 +17,31 @@ void SimulationIISPH() {
     UpdateParticles();
 }
 
-void Initialization(const int l) {
+void Initialization() {
     InitBoundaries();
-    InitFluid(l);
+    InitFluid();
     UniformGrid();
+}
+
+void Simulation2D() {
+	NSUniformGrid2D();
+	ComputeDensityPressure2D();
+	ComputeAcceleration2D();
+	UpdateParticles2D();
+}
+
+void Initialization2D() {
+	InitBoundaries2D();
+	InitFluid2D();
+	UniformGrid2D();
+}
+
+void SimulationIISPH2D() {
+	NSUniformGrid2D();
+	ComputeDensity2D();
+	PredictVelocity2D();
+	ComputeDensityError2D();
+	ComputeLaplacian2D();
+	CompressionConvergence2D();
+	UpdateParticles2D();
 }

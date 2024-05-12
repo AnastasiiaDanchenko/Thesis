@@ -25,7 +25,32 @@ public:
     // IISPH
     Eigen::Vector3f predictedVelocity;
     float sourceTerm;
-    float coefficient;
     float diagonal;
     Eigen::Vector3f pressureAcceleration;
+};
+
+class Particle2D {
+public:
+    Eigen::Vector2f position;
+    Eigen::Vector2f velocity;
+    Eigen::Vector2f acceleration;
+
+    float mass;
+    float density;
+    float pressure;
+
+    bool isFluid;
+
+    int ID;
+
+    std::vector<Particle2D*> neighbors;
+
+    Particle2D();
+    Eigen::Vector2i getCellNumber();
+
+    // IISPH
+    Eigen::Vector2f predictedVelocity;
+    float sourceTerm;
+    float diagonal;
+    Eigen::Vector2f pressureAcceleration;
 };

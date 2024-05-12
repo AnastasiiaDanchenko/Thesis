@@ -3,13 +3,13 @@
 Camera::Camera(int width, int height, int depth) {
 	this->width = width;
 	this->height = height;
-	this->position = glm::vec3(width / 2, height / 2, - depth);
-    this->orientation = glm::vec3(width / 2, height / 2, 0.0f);
+	this->position = glm::vec3(width / 5, height / 5, - depth);
+    this->orientation = glm::vec3(width, height, 0.0f);
 }
 
 void Camera::Matrix(float width, float height, float depth, unsigned int shader) {
     glm::mat4 projection = glm::perspective(glm::radians(25.0f), width / height, 0.1f, 5 * depth);
-    projection = glm::translate(projection, glm::vec3(- width, -height / 4, -4 * depth));
+    projection = glm::translate(projection, glm::vec3(- width * 1.15, - height / 3, - 4 * depth));
     GLuint projectionUniform = glGetUniformLocation(shader, "projection");
     glUniformMatrix4fv(projectionUniform, 1, GL_FALSE, glm::value_ptr(projection));
 

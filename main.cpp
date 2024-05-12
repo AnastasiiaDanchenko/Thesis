@@ -13,8 +13,16 @@ int main() {
     // Read parameters from the input file
     readParameters();
 
-    Initialization(1);
-    Visualize();
+    if (DIMENSIONS == 2){
+        Initialization2D();
+        //while (true) SimulationIISPH2D();
+        //Visualize2D();
+        SaveToDisk2D();
+    }
+    else if (DIMENSIONS == 3) {
+        Initialization();
+        Visualize();
+	}
 
     return 0;
 }

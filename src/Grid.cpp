@@ -1,24 +1,27 @@
 #include "..\headers\Grid.h"
 
 std::vector<Particle> particles;
+std::vector<Particle2D> particles2D;
+
 std::vector<GridCell> grid;
+std::vector<GridCell2D> grid2D;
 
 int GRID_WIDTH;
 int GRID_HEIGHT;
 int GRID_DEPTH;
 
 // Initialize uniformed grid of fluid particles
-void InitFluid(const int l) {
+void InitFluid() {
     int depth = SCENE_DEPTH / SPACING - 1;
 
-    for (int i = 0; i < PARTICLES_PER_DIMENSION * l; i++) {
-        for (int j = 0; j < PARTICLES_PER_DIMENSION; j++) {
+    for (int i = 0; i < PARTICLES_X; i++) {
+        for (int j = 0; j < PARTICLES_Y; j++) {
             for (int k = 3; k <= depth - 4; k++) {
                 Particle p;
 
 				p.position = Eigen::Vector3f((i + 4) * SPACING, (j + 4) * SPACING, (k + 1) * SPACING);
 				p.ID = particles.size();
-				particles.push_back(p);
+                particles.push_back(p);
             }
         }
     }
@@ -75,4 +78,63 @@ void GridUpdate() {
         grid[cellNumber.x() + cellNumber.y() * GRID_WIDTH + 
              cellNumber.z() * GRID_WIDTH * GRID_HEIGHT].cellParticles.push_back(&p);
     }
+}
+
+void InitFluid2D() {
+	int depth = SCENE_DEPTH / SPACING - 1;
+
+    for (int i = 0; i < PARTICLES_X; i++) {
+        for (int j = 0; j < PARTICLES_Y; j++) {
+			Particle2D p;
+
+			p.position = Eigen::Vector2f((i + 4) * SPACING, (j + 4) * SPACING);
+			p.ID = particles2D.size();
+            particles2D.push_back(p);
+		}
+	}
+}
+
+void InitBoundaries2D() {
+	int width = (WINDOW_WIDTH / 2) / SPACING - 1;
+	int hight = (WINDOW_HEIGHT / 2) / SPACING - 1;
+
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < hight; j++) {
+            if (i < 3 || i > width - 4 || j < 3 || j > hight - 4) {
+				Particle2D p;
+
+				p.position = Eigen::Vector2f((i + 1) * SPACING, (j + 1) * SPACING);
+				p.isFluid = false;
+				p.ID = particles2D.size();
+
+                particles2D.push_back(p);
+			}
+		}
+	}
+}
+
+void UniformGrid2D() {
+	GRID_WIDTH = std::ceil(WINDOW_WIDTH / CELL_SIZE);
+	GRID_HEIGHT = std::ceil(WINDOW_HEIGHT / CELL_SIZE);
+
+	std::cout << "Using uniform grid with " << GRID_WIDTH << "x"
+		<< GRID_HEIGHT << " cells" << std::endl;
+
+	grid2D.resize(GRID_WIDTH * GRID_HEIGHT);
+}
+
+void GridUpdate2D() {
+	// Clear grid
+    for (int i = 0; i < grid2D.size(); i++) {
+		grid2D[i].cellParticles.clear();
+	}
+
+    for (auto& p : particles2D) {
+		const Eigen::Vector2i cellNumber = p.getCellNumber();
+        if (cellNumber.x() < 0 || cellNumber.x() >= GRID_WIDTH ||
+            cellNumber.y() < 0 || cellNumber.y() >= GRID_HEIGHT) {
+			continue;
+		}
+		grid2D[cellNumber.x() + cellNumber.y() * GRID_WIDTH].cellParticles.push_back(&p);
+	}
 }

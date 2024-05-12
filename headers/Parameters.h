@@ -6,7 +6,8 @@
 #include <Eigen/Dense>
 
 // Read parameters for the SPH simulation from a .csv file
-const std::string fileName = "parameters.csv";
+//const std::string fileName = "parameters.csv";
+const std::string fileName = "parametersIISPH.csv";
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -20,6 +21,9 @@ extern int PARTICLE_NEIGHBORS; // Visualized neighbors for a given particle
 
 // Initial grid parameters
 extern int PARTICLES_PER_DIMENSION;
+extern int PARTICLES_X;
+extern int PARTICLES_Y;
+extern int PARTICLES_Z;
 extern float SPACING;
 extern int CELL_SIZE;
 
@@ -30,13 +34,18 @@ extern float TIME_STEP;
 extern float STIFFNESS;
 extern float VISCOSITY;
 extern Eigen::Vector3f GRAVITY;
+extern Eigen::Vector2f GRAVITY2D;
 
 // IISPH parameters
 extern float GAMMA;
 extern float OMEGA;
+extern float AVG_DENSITY;
+extern float DENSITY_ERR;
+extern float ERR_THRESHOLD;
 
 extern std::string NS_METHOD;
 extern std::string SIMULATION;
 extern bool VISUALIZATION;
+extern int DIMENSIONS;
 
 void readParameters();

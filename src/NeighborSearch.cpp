@@ -42,3 +42,27 @@ void NSUniformGrid() {
         }
 	}
 }
+
+void NSUniformGrid2D() {
+	GridUpdate2D();
+
+	#pragma omp parallel for
+    for (int i = 0; i < particles2D.size(); i++) {
+		particles2D[i].neighbors.clear();
+		const Eigen::Vector2i cellNumber = particles2D[i].getCellNumber();
+
+        for (int j = cellNumber.x() - 1; j <= cellNumber.x() + 1; j++) {
+            for (int k = cellNumber.y() - 1; k <= cellNumber.y() + 1; k++) {
+				if (j < 0 || j >= GRID_WIDTH || k < 0 || k >= GRID_HEIGHT) { continue; }
+
+                for (auto& p : grid2D[j + k * GRID_WIDTH].cellParticles) {
+					float distance = std::sqrt((p->position - particles2D[i].position).squaredNorm());
+
+                    if (distance < SUPPORT) {
+						particles2D[i].neighbors.push_back(p);
+					}
+				}
+			}
+		}
+	}
+}
