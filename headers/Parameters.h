@@ -7,6 +7,7 @@
 
 // Read parameters for the SPH simulation from a .csv file
 //const std::string fileName = "parameters.csv";
+//const std::string fileName = "parametersIISPH2D.csv";
 const std::string fileName = "parametersIISPH.csv";
 
 #ifndef M_PI
@@ -42,6 +43,7 @@ extern float OMEGA;
 extern float AVG_DENSITY;
 extern float DENSITY_ERR;
 extern float ERR_THRESHOLD;
+extern int NB_ITERATIONS;
 
 extern std::string NS_METHOD;
 extern std::string SIMULATION;

@@ -25,7 +25,8 @@ float GAMMA = 0.7f;
 float OMEGA = 0.5f;
 float AVG_DENSITY = 0.0f;
 float DENSITY_ERR = 0.0f;
-float ERR_THRESHOLD = 0.01f;
+float ERR_THRESHOLD = 0.001f;
+int NB_ITERATIONS = 0;
 
 std::string NS_METHOD;
 std::string SIMULATION;
@@ -100,8 +101,8 @@ void readParameters() {
 		else if (parameterName == "dimensions") {
 			DIMENSIONS = std::stoi(parameterValue);
 		}
-		else if (parameterName == "error") {
-			ERR_THRESHOLD = std::stod(parameterValue);
+		else if (parameterName == "error%") {
+			ERR_THRESHOLD = std::stod(parameterValue) * 0.01; // Convert to percentage
 		}
 	}
 }

@@ -349,6 +349,9 @@ void PredictVelocity2D() {
                 (rSquaredNorm + 0.01f * pow(SPACING, 2));
         }
 
+        // Surface tension
+
+
         p.acceleration = acceleration;
         p.predictedVelocity = p.velocity + TIME_STEP * p.acceleration;
     }
@@ -423,10 +426,11 @@ void ComputeLaplacian2D() {
 // IISPH compression convergence
 void CompressionConvergence2D() {
     float densityError = REST_DENSITY;
-    int l = 0;
+    NB_ITERATIONS = 0;
 
-    while (densityError > ERR_THRESHOLD * REST_DENSITY || l < 2) {
-    //while (l < 10) {
+    while ((densityError > ERR_THRESHOLD * REST_DENSITY || NB_ITERATIONS < 2) && NB_ITERATIONS < 100) {
+        float densityErrorPrev = densityError;
+
         densityError = 0.0f;
 
         // first loop: compute pressure acceleration
@@ -471,18 +475,16 @@ void CompressionConvergence2D() {
 
             if (p.diagonal != 0) {
                 pressure = std::max(0.0f, p.pressure + OMEGA * (p.sourceTerm - divergenceVel) / p.diagonal);
-                //std::cout << "Pressure: " << pressure << std::endl;
-                //std::cout << "Second term: " << p.pressure + OMEGA * (p.sourceTerm - divergenceVel) / p.diagonal << std::endl;
             }
 
-            densityError += abs(divergenceVel - p.sourceTerm);
+            densityError += divergenceVel - p.sourceTerm;
 
             p.pressure = pressure;
         }
 
         densityError /= PARTICLES_X * PARTICLES_Y;
-        DENSITY_ERR = densityError / 1000 * 100;
+        DENSITY_ERR = densityError;
 
-        l++;
+        NB_ITERATIONS++;
     }
 }

@@ -40,6 +40,7 @@ public:
     float pressure;
 
     bool isFluid;
+    bool isSurface;
 
     int ID;
 
@@ -53,4 +54,9 @@ public:
     float sourceTerm;
     float diagonal;
     Eigen::Vector2f pressureAcceleration;
+    Eigen::Vector2f dii;
+    float aii;
+    float predictedDensity;
+    float predictedPressure;
+    Eigen::Vector2f ci;
 };

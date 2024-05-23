@@ -81,11 +81,16 @@ void GridUpdate() {
 }
 
 void InitFluid2D() {
-	int depth = SCENE_DEPTH / SPACING - 1;
-
     for (int i = 0; i < PARTICLES_X; i++) {
         for (int j = 0; j < PARTICLES_Y; j++) {
 			Particle2D p;
+
+            /*if (j % 2 == 0) {
+                p.position = Eigen::Vector2f((i + 4) * SPACING, (j + 4) * SPACING);
+            }
+            else {
+                p.position = Eigen::Vector2f((i + 4.5) * SPACING, (j + 4) * SPACING);
+            }*/
 
 			p.position = Eigen::Vector2f((i + 4) * SPACING, (j + 4) * SPACING);
 			p.ID = particles2D.size();

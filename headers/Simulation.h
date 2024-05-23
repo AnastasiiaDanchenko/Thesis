@@ -1,5 +1,6 @@
 #pragma once
 #include "ComputationsSPH.h"
+#include "ComputationsIISPH.h"
 #include "NeighborSearch.h"
 
 void Initialization();

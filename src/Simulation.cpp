@@ -44,4 +44,14 @@ void SimulationIISPH2D() {
 	ComputeLaplacian2D();
 	CompressionConvergence2D();
 	UpdateParticles2D();
+
+	//NSUniformGrid2D();
+	//CalculateDensity2D();
+	//PredictVelocityAdvection2D();
+	//ComputeDii();
+	//ComputeAii();
+	//PredictDensity2D();
+	//SolvePressure2D();
+	//ComputePressureAcceleration2D();
+	//AdvectParticles2D();
 }

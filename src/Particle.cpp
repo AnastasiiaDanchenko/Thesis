@@ -35,7 +35,12 @@ Particle2D::Particle2D() :
 	predictedVelocity(Eigen::Vector2f(0.0f, 0.0f)),
 	sourceTerm(0.0f),
 	diagonal(0.0f),
-	pressureAcceleration(Eigen::Vector2f(0.0f, 0.0f)) {}
+	pressureAcceleration(Eigen::Vector2f(0.0f, 0.0f)),
+	dii(Eigen::Vector2f(0.0f, 0.0f)),
+	aii(0.0f),
+	predictedDensity(0.0f),
+	predictedPressure(0.0f),
+	ci(Eigen::Vector2f(0.0f, 0.0f)) {}
 
 Eigen::Vector2i Particle2D::getCellNumber() {
 	int x = std::floor(position.x() / CELL_SIZE);
