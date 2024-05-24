@@ -92,7 +92,7 @@ void InitFluid2D() {
                 p.position = Eigen::Vector2f((i + 4.5) * SPACING, (j + 4) * SPACING);
             }*/
 
-			p.position = Eigen::Vector2f((i + 4) * SPACING, (j + 4) * SPACING);
+			p.position = Eigen::Vector2f((i + 9) * SPACING, (j + 10) * SPACING);
 			p.ID = particles2D.size();
             particles2D.push_back(p);
 		}

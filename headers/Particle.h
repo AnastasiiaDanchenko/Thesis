@@ -34,6 +34,7 @@ public:
     Eigen::Vector2f position;
     Eigen::Vector2f velocity;
     Eigen::Vector2f acceleration;
+    Eigen::Vector2f normal;
 
     float mass;
     float density;

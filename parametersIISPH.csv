@@ -1,12 +1,12 @@
-window_width,350
+window_width,600
 window_hight,800
 depth,500
 spacing,8
 support,2.0
 density,1000.0
 particles,0
-particlesX,12
-particlesY,40
+particlesX,20
+particlesY,20
 particlesZ,10
 timestep,0.1
 stiffness,100000.0
@@ -15,4 +15,4 @@ neighbors,8060
 gamma,0.6
 omega,0.5
 dimensions,2
-error%,0.1
+error%,1

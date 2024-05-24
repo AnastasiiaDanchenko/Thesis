@@ -8,3 +8,5 @@ Eigen::Vector3f CubicSplineKernelGradient(const Eigen::Vector3f& r);
 
 float CubicSplineKernel2D(Eigen::Vector2f r);
 Eigen::Vector2f CubicSplineKernelGradient2D(Eigen::Vector2f r);
+
+float CohesionSpline2D(Eigen::Vector2f r);

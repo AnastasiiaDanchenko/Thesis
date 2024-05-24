@@ -26,11 +26,13 @@ Particle2D::Particle2D() :
 	position(Eigen::Vector2f(0.0f, 0.0f)),
 	velocity(Eigen::Vector2f(0.0f, 0.0f)),
 	acceleration(Eigen::Vector2f(0.0f, 0.0f)),
+	normal(Eigen::Vector2f(0.0f, 0.0f)),
 
 	mass(SPACING * SPACING * REST_DENSITY),
 	density(REST_DENSITY),
 	pressure(0.0f),
 	isFluid(true),
+	isSurface(false),
 	ID(0),
 	predictedVelocity(Eigen::Vector2f(0.0f, 0.0f)),
 	sourceTerm(0.0f),

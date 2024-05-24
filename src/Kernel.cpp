@@ -55,3 +55,19 @@ Eigen::Vector2f CubicSplineKernelGradient2D(Eigen::Vector2f r) {
     }
     return derivative * r.normalized();
 }
+
+float CohesionSpline2D(Eigen::Vector2f r) {
+    float alpha = 32 / (M_PI * pow(SPACING, 9));
+    float q = r.norm();
+    float result = 0.0f;
+
+    if (2 * q > SPACING && q <= SPACING) {
+        result = alpha * pow(SPACING - q, 3) * pow(q, 3);
+    }
+    else if (q > 0 && 2 * q <= SPACING) {
+        result = alpha * (2 * pow(SPACING - q, 3) * pow(q, 3) - pow(SPACING, 6) / 64);
+	}
+
+    return result;
+}
+

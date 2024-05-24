@@ -34,6 +34,7 @@ extern float REST_DENSITY;
 extern float TIME_STEP;
 extern float STIFFNESS;
 extern float VISCOSITY;
+extern float COHESION;
 extern Eigen::Vector3f GRAVITY;
 extern Eigen::Vector2f GRAVITY2D;
 
@@ -48,6 +49,7 @@ extern int NB_ITERATIONS;
 extern std::string NS_METHOD;
 extern std::string SIMULATION;
 extern bool VISUALIZATION;
+extern bool SURFACE_TENSION;
 extern int DIMENSIONS;
 
 void readParameters();

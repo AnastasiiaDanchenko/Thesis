@@ -463,6 +463,9 @@ void SaveToDisk2D() {
 
     // step count for saved files
     int count = 0;
+    // create a path for the images
+    std::string path = "output/" + std::to_string(PARTICLES_X * PARTICLES_Y) + "_" + std::to_string(ERR_THRESHOLD);
+    std::filesystem::create_directories(path);
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
@@ -470,7 +473,6 @@ void SaveToDisk2D() {
             for (int i = 0; i < 1; i++) {
                 SimulationIISPH2D();
             }
-            //isSimulationRunning = false;
         }
 
         clearBuffers();
@@ -490,14 +492,17 @@ void SaveToDisk2D() {
                 }
                 if (p.ID == PARTICLE_NEIGHBORS) { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 1.0f, 0.0f); }
                 else if (isNeighbor) { pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 0.0f); }
+                /*else if (p.isSurface) {
+                    pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 1.0f);
+                }*/
                 else { 
-                    //colorize particles based on their speed
                     float speed = magnitude2D(p.velocity);
                     float hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
                     float r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
                     pushVertex2D(p.position.x(), p.position.y(), r, g, b);
+                    //pushVertex2D(p.position.x(), p.position.y(), 0.0f, 0.0f, 1.0f);
                 }
             }
             else { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 0.7f, 0.5f); }
@@ -512,7 +517,7 @@ void SaveToDisk2D() {
 
         //set fixed position for imgui window
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 60));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 80));
 
         ImGui::Begin("Simulation Parameters");
         ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y);
@@ -526,13 +531,17 @@ void SaveToDisk2D() {
         ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 60));
+        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 80));
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
 
         ImGui::Begin("Simulation Controls");
         if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
         ImGui::SameLine();
         if (ImGui::Button("Reset")) { particles2D.clear(); Initialization2D(); }
+        if (ImGui::Button("Surface Tension: ON/OFF")) { 
+            SURFACE_TENSION = !SURFACE_TENSION; 
+            particles2D.clear(); Initialization2D();
+        }
         ImGui::End();
 
         ImGui::Render();
@@ -541,10 +550,7 @@ void SaveToDisk2D() {
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        // create a path for the images
         std::stringstream filenameStream;
-        std::string path = "output/" + std::to_string(PARTICLES_X * PARTICLES_Y) + "_" + std::to_string(ERR_THRESHOLD);
-        std::filesystem::create_directory(path);
         filenameStream << path << "/" << count << ".png";
         std::string filename = filenameStream.str();
         saveImage(filename.c_str(), window);

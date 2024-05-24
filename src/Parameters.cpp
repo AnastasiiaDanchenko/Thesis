@@ -17,6 +17,7 @@ float REST_DENSITY = 1000.0f;
 float TIME_STEP = 0.01f;
 float STIFFNESS = 100000.0f;
 float VISCOSITY = 0.1f;
+float COHESION = 0.00001f;
 
 Eigen::Vector3f GRAVITY = Eigen::Vector3f(0.0f, -9.8f, 0.0f);
 Eigen::Vector2f GRAVITY2D = Eigen::Vector2f(0.0f, -9.8f);
@@ -32,6 +33,7 @@ std::string NS_METHOD;
 std::string SIMULATION;
 
 bool VISUALIZATION = true;
+bool SURFACE_TENSION = false;
 int DIMENSIONS = 3;
 
 void readParameters() {

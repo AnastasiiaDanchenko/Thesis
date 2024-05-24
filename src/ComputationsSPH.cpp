@@ -327,32 +327,78 @@ void ComputeDensity2D() {
     AVG_DENSITY = avgDensity / (PARTICLES_X * PARTICLES_Y);
 }
 
+void ComputeSurface2D() {
+    for (auto& p : particles2D) {
+		
+        Eigen::Vector2f normal = Eigen::Vector2f::Zero();
+        for (auto neighbor : p.neighbors) {
+            normal += neighbor->mass / neighbor->density * CubicSplineKernelGradient2D(p.position - neighbor->position);
+		}
+
+		p.normal = SPACING * normal;
+
+        // Define surface particles
+        if (p.normal.squaredNorm() > 0.05) {
+			p.isSurface = true;
+		}
+        else {
+			p.isSurface = false;
+		}
+	}
+}
+
+Eigen::Vector2f ViscosityAcceleration2D(Particle2D* p) {
+    Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
+
+    for (auto neighbor : p->neighbors) {
+        if (neighbor == p) { continue; }
+
+        const Eigen::Vector2f r = p->position - neighbor->position;
+        const Eigen::Vector2f kernel = CubicSplineKernelGradient2D(r);
+
+        const Eigen::Vector2f v = p->velocity - neighbor->velocity;
+        acceleration += 2 * VISCOSITY * neighbor->mass * v / neighbor->density * r.dot(kernel) /
+            (r.squaredNorm() + 0.01f * pow(SPACING, 2));
+    }
+
+    return acceleration;
+}
+
+Eigen::Vector2f SurfaceTensionAcceleration2D(Particle2D* p) {
+	Eigen::Vector2f surfaceTension = Eigen::Vector2f::Zero();
+
+    for (auto neighbor : p->neighbors) {
+		if (neighbor == p || (p->isSurface == false && neighbor->isSurface == false)) { continue; }
+
+        const Eigen::Vector2f r = p->position - neighbor->position;
+        const Eigen::Vector2f n = p->normal - neighbor->normal;
+
+        Eigen::Vector2f cohesion = Eigen::Vector2f::Zero();
+        Eigen::Vector2f curvature = Eigen::Vector2f::Zero();
+
+        // TODO: Implement cohesion and curvature
+        cohesion = -COHESION * p->mass * neighbor->mass * CohesionSpline2D(r) / r.norm() * r;
+        curvature = -COHESION * p->mass * n;
+
+        surfaceTension += 2 * REST_DENSITY / (p->density + neighbor->density) * (cohesion + curvature);
+	}
+
+	return surfaceTension;
+}
+
 // IISPH non-pressure acceleration computation and velocity prediction
 void PredictVelocity2D() {
     //#pragma omp parallel for
     for (auto& p : particles2D) {
-        // Compute non-pressure acceleration
         if (p.isFluid == false) { continue; }
 
-        // Acceleration due to gravity
-        Eigen::Vector2f acceleration = GRAVITY2D;
+        if (SURFACE_TENSION) {
+			p.acceleration = GRAVITY2D + ViscosityAcceleration2D(&p) + SurfaceTensionAcceleration2D(&p);
+		}
+        else {
+			p.acceleration = GRAVITY2D + ViscosityAcceleration2D(&p);
+		}
 
-        // Viscosity acceleration
-        for (auto neighbor : p.neighbors) {
-            if (neighbor == &p) { continue; }
-            const Eigen::Vector2f r = p.position - neighbor->position;
-            const float rSquaredNorm = r.squaredNorm();
-            const Eigen::Vector2f kernel = CubicSplineKernelGradient2D(r);
-
-            const Eigen::Vector2f v = p.velocity - neighbor->velocity;
-            acceleration += 2 * VISCOSITY * neighbor->mass * v / neighbor->density * r.dot(kernel) /
-                (rSquaredNorm + 0.01f * pow(SPACING, 2));
-        }
-
-        // Surface tension
-
-
-        p.acceleration = acceleration;
         p.predictedVelocity = p.velocity + TIME_STEP * p.acceleration;
     }
 }

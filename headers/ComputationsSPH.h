@@ -20,6 +20,7 @@ void UpdateParticles2D();
 
 // IISPH functions 2D
 void ComputeDensity2D();
+void ComputeSurface2D();
 void PredictVelocity2D();
 void ComputeDensityError2D();
 void ComputeLaplacian2D();

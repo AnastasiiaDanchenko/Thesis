@@ -38,11 +38,15 @@ void Initialization2D() {
 
 void SimulationIISPH2D() {
 	NSUniformGrid2D();
+
 	ComputeDensity2D();
+	ComputeSurface2D();
+
 	PredictVelocity2D();
 	ComputeDensityError2D();
 	ComputeLaplacian2D();
 	CompressionConvergence2D();
+
 	UpdateParticles2D();
 
 	//NSUniformGrid2D();
