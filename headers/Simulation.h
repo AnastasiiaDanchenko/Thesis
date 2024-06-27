@@ -16,3 +16,5 @@ void Simulation();
 void SimulationIISPH();
 void Simulation2D();
 void SimulationIISPH2D();
+
+void MovingBoundaryIISPH2D();

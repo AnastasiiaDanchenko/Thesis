@@ -45,6 +45,7 @@ void MovingBoundaryInitialization() {
 
 void SimulationIISPH2D() {
 	NSUniformGrid2D();
+	BoundaryMassUpdate();
 
 	ComputeDensity2D();
 	ComputeSurface2D();
@@ -53,16 +54,17 @@ void SimulationIISPH2D() {
 	ComputeLaplacian2D();
 	CompressionConvergence2D();
 	UpdateParticles2D();
-
-	FIRST_STEP = false;
-
-	/*CalculateDensity2D();
-	PredictVelocityAdvection2D();
-	ComputeDii();
-	ComputeAii();
-	PredictDensity2D();
-	SolvePressure2D();
-	ComputePressureAcceleration2D();
-	AdvectParticles2D();*/
 }
 
+void MovingBoundaryIISPH2D() {
+	NSUniformGrid2D();
+
+	BoundaryMassUpdate();
+	ComputeDensity2D();
+	ComputeSurface2D();
+	PredictVelocity2D();
+	ComputeDensityError2D();
+	ComputeLaplacian2D();
+	CompressionConvergence2D();
+	UpdateParticles2D();
+}

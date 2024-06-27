@@ -555,3 +555,17 @@ void CompressionConvergence2D() {
         NB_ITERATIONS++;
     }
 }
+
+void BoundaryMassUpdate() {
+    for (auto& p : particles2D) {
+        if (p.isFluid == false) {
+			double kernelSum = 0.0;
+            for (auto neighbor : p.neighbors) {
+                if (neighbor->isFluid == false) {
+					kernelSum += CubicSplineKernel2D(p.position - neighbor->position);
+				}
+			}
+			p.mass = REST_DENSITY * 0.75 / kernelSum;
+		}
+	}
+}

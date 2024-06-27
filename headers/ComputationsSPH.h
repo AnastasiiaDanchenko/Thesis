@@ -26,3 +26,5 @@ void ComputeDensityError2D();
 void ComputeLaplacian2D();
 void CompressionConvergence2D();
 void UpdateParticles2D();
+
+void BoundaryMassUpdate();

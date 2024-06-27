@@ -7,6 +7,7 @@
 const int IMGUI_WINDOW_WIDTH = 300;
 
 bool isSimulationRunning = false;
+int simulationType = 0;
 
 typedef enum {
     POSITION_ATTRIBUTE = 0,
@@ -432,18 +433,16 @@ void Visualize2D() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
+    //create save directory
+    /*int count = 0;
+    std::string path = "output/" + std::to_string(PARTICLES_X * PARTICLES_Y) + "_" + std::to_string(ERR_THRESHOLD);
+    std::filesystem::create_directories(path);*/
+
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH2D();
-            //Simulation2D();
-            
-            /*ITERATIONS_COUNT++;
-
-            if (ITERATIONS_COUNT > 1000) {
-                if (ITERATIONS_COUNT == 1001) std::cout << "Time step changed" << std::endl;
-				MAX_TIME_STEP = 0.025;
-			}*/
+            if (simulationType == 0) SimulationIISPH2D();
+            else if (simulationType == 1) MovingBoundaryIISPH2D();
         }
 
         clearBuffers();
@@ -464,7 +463,15 @@ void Visualize2D() {
 
                 pushVertex2D(p.position.x(), p.position.y(), r, g, b);
             }
-            else { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 0.7f, 0.5f); }
+            else {
+                double hue = mapColor(p.mass, 0.0, 100000.0, 0.0, 30.0);
+                double saturation = mapColor(p.mass, 0.0, 100000.0, 0.0, 1.0);
+                double value = mapColor(p.mass, 0.0, 100000.0, 1.0, 0.6);
+                double r, g, b;
+                HSVtoRGB(&r, &g, &b, hue, saturation, value);
+
+                pushVertex2D(p.position.x(), p.position.y(), r, g, b);
+            }
         }
 
         syncBuffers2D();
@@ -506,7 +513,7 @@ void Visualize2D() {
         ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 100));
+        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 120));
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
 
         ImGui::Begin("Simulation Controls");
@@ -514,182 +521,20 @@ void Visualize2D() {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) { 
             particles2D.clear(); 
-            //Initialization2D(); 
-            MovingBoundaryInitialization();
+            if (simulationType == 0) Initialization2D();
+            else if (simulationType == 1) MovingBoundaryInitialization();
         }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
             SURFACE_TENSION = !SURFACE_TENSION;
             particles2D.clear(); Initialization2D();
         }
         if (ImGui::Button("Move forward one time step")) { SimulationIISPH2D(); }
-        ImGui::End();
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glDeleteProgram(shader);
-    glfwTerminate();
-}
-
-void SaveToDisk2D() {
-    // Initialize GLFW
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    // Set the OpenGL version to 3.3 to use modern shaders
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Create a window
-    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 2D", nullptr, nullptr);
-    if (!window) {
-        std::cerr << "Failed to create GLFW window!" << std::endl;
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-
-    glfwMakeContextCurrent(window);
-
-    // Initialize GLEW
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "Failed to initialize GLEW!" << std::endl;
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Set the background color
-    glClearColor(.05f, .05f, .05f, 1.0f);
-
-    // Copile and link the shaders
-    ShaderProgramSource source = ParseShader("Shaders/vbo2D.vert", "Shaders/vbo2D.frag");
-    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-
-    glUseProgram(shader);
-    GLuint resolutionUniform = glGetUniformLocation(shader, "resolution");
-    glUniform2f(resolutionUniform, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    // Initialize the buffers
-    initBuffers2D();
-
-    // Initialize ImGui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    // step count for saved files
-    int count = 0;
-    // create a path for the images
-    std::string path = "output/" + std::to_string(PARTICLES_X * PARTICLES_Y) + "_" + std::to_string(ERR_THRESHOLD);
-    std::filesystem::create_directories(path);
-
-    // event loop
-    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
-        if (isSimulationRunning){
-            SimulationIISPH2D();
-            //Simulation2D();
+        if (ImGui::Button("Change simulation type")) {
+            simulationType = (simulationType + 1) % 2;
+			particles2D.clear();
+			if (simulationType == 0) Initialization2D();
+			else if (simulationType == 1) MovingBoundaryInitialization();
         }
-
-        clearBuffers();
-
-        // Render ImGui
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        glViewport(IMGUI_WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-        for (auto& p : particles2D) {
-            if (p.isFluid) {
-                /*bool isNeighbor = false;
-                for (auto& n : p.neighbors) {
-                    if (n == &particles2D[PARTICLE_NEIGHBORS]) { isNeighbor = true; break; }
-                }
-                if (p.ID == PARTICLE_NEIGHBORS) { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 1.0f, 0.0f); }
-                else if (isNeighbor) { pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 0.0f); }
-                else if (p.isSurface) {
-                    pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 1.0f);
-                }
-                else { */
-                    double speed = magnitude2D(p.velocity);
-
-                    //double hue = mapColor(p.pressure, 0.0f, 2000000.0f, 240.0f, 0.0f);
-                    double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
-                    double r, g, b;
-                    HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
-
-                    pushVertex2D(p.position.x(), p.position.y(), r, g, b);
-                //}
-            }
-            else { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 0.7f, 0.5f); }
-        }
-
-        syncBuffers2D();
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glPointSize(SPACING * 2); // Set the point size
-        glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
-
-        //set fixed position for imgui window
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
-
-        ImGui::Begin("Simulation Parameters");
-        ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y);
-
-        float tempTimeStep = static_cast<float>(TIME_STEP);
-        ImGui::Text("\Time step:");
-        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, 0.3)) {
-			TIME_STEP = static_cast<double>(tempTimeStep);
-		}
-
-        float tempGamma = static_cast<float>(GAMMA);
-        ImGui::Text("\Gamma:"); 
-        if (ImGui::SliderFloat("##Gamma", &tempGamma, 0.01, 1.0)) {
-			GAMMA = static_cast<double>(tempGamma);
-		}
-
-        float tempOmega = static_cast<float>(OMEGA);
-        ImGui::Text("\Omega:"); 
-        if (ImGui::SliderFloat("##Omega", &tempOmega, 0.01, 1.0)) {
-            OMEGA = static_cast<double>(tempOmega);
-        }
-
-        ImGui::Text("\Rest Density: %f", REST_DENSITY);
-        ImGui::Text("\Average Density: %f", AVG_DENSITY);
-        ImGui::Text("\Density Error, %%: %f", DENSITY_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Density Error before PPE, %%: %f", FIRST_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
-        ImGui::End();
-
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 100));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
-
-        ImGui::Begin("Simulation Controls");
-        if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
-        ImGui::SameLine();
-        if (ImGui::Button("Reset")) { particles2D.clear(); Initialization2D(); }
-        if (ImGui::Button("Surface Tension: ON/OFF")) { 
-            SURFACE_TENSION = !SURFACE_TENSION; 
-            particles2D.clear(); Initialization2D();
-        }
-        if (ImGui::Button("Move forward one time step")) { SimulationIISPH2D(); }
         ImGui::End();
 
         ImGui::Render();
@@ -698,12 +543,12 @@ void SaveToDisk2D() {
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        std::stringstream filenameStream;
+        /*std::stringstream filenameStream;
         filenameStream << path << "/" << count << ".png";
         std::string filename = filenameStream.str();
         saveImage(filename.c_str(), window);
 
-        count++;
+        count++;*/
     }
 
     ImGui_ImplOpenGL3_Shutdown();

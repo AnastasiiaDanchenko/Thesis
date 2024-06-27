@@ -95,8 +95,7 @@ void InitFluid2D() {
                 p.position = Eigen::Vector2d((i + 2.5) * SPACING, (j + 2) * SPACING);
             }*/
 
-            //p.position = Eigen::Vector2d((i + 2) * SPACING, (j + 2) * SPACING);
-            p.position = Eigen::Vector2d((i + 4) * SPACING, (j + 4) * SPACING);
+            p.position = Eigen::Vector2d((i + 2) * SPACING, (j + 2) * SPACING);
 			p.ID = particles2D.size();
             particles2D.push_back(p);
 		}
@@ -107,10 +106,10 @@ void InitBoundaries2D() {
 	int width = (WINDOW_WIDTH / 2) / SPACING - 1;
 	int hight = (WINDOW_HEIGHT / 2) / SPACING - 1;
 
-    for (int i = 0; i < width; i++) {
-        for (int j = 0; j < hight; j++) {
-            //if (i < 1 || i > width - 2 || j < 1 || j > hight - 2) {
-            if (i < 3 || i > width - 4 || j < 3 || j > hight - 4) {
+    for (float i = 0; i < width; i += 0.5) {
+        for (float j = 0; j < hight; j += 0.5) {
+            if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1) {
+            //if (i < 3 || i > width - 4 || j < 3 || j > hight - 4) {
 				Particle2D p;
 
 				p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
@@ -161,7 +160,7 @@ void MovingBoundary() {
             p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
             p.isFluid = false;
             p.ID = particles2D.size();
-            p.velocity = Eigen::Vector2d(10, 0.0);
+            p.velocity = Eigen::Vector2d(15, 0.0);
 
             particles2D.push_back(p);
         }

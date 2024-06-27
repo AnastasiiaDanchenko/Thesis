@@ -51,10 +51,8 @@ int main() {
     readParameters();
 
     if (DIMENSIONS == 2){
-        //Initialization2D();
-        MovingBoundaryInitialization();
+        Initialization2D();
         Visualize2D();
-        //SaveToDisk2D();
         //SEvsPPE();
     }
     else if (DIMENSIONS == 3) {
