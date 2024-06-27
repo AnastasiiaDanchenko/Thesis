@@ -25,25 +25,29 @@ extern int PARTICLES_PER_DIMENSION;
 extern int PARTICLES_X;
 extern int PARTICLES_Y;
 extern int PARTICLES_Z;
-extern float SPACING;
-extern int CELL_SIZE;
+extern int NB_FLUID_PARTICLES;
+extern double SPACING;
+extern double CELL_SIZE;
 
 // SPH parameters
-extern float SUPPORT;
-extern float REST_DENSITY;
-extern float TIME_STEP;
-extern float STIFFNESS;
-extern float VISCOSITY;
-extern float COHESION;
-extern Eigen::Vector3f GRAVITY;
-extern Eigen::Vector2f GRAVITY2D;
+extern double SUPPORT;
+extern double REST_DENSITY;
+extern double TIME_STEP;
+extern double STIFFNESS;
+extern double VISCOSITY;
+extern double COHESION;
+extern Eigen::Vector3d GRAVITY;
+extern Eigen::Vector2d GRAVITY2D;
+extern double MAX_TIME_STEP;
+extern int ITERATIONS_COUNT;
 
 // IISPH parameters
-extern float GAMMA;
-extern float OMEGA;
-extern float AVG_DENSITY;
-extern float DENSITY_ERR;
-extern float ERR_THRESHOLD;
+extern double GAMMA;
+extern double OMEGA;
+extern double AVG_DENSITY;
+extern double DENSITY_ERR;
+extern double FIRST_ERR;
+extern double ERR_THRESHOLD;
 extern int NB_ITERATIONS;
 
 extern std::string NS_METHOD;
@@ -51,5 +55,7 @@ extern std::string SIMULATION;
 extern bool VISUALIZATION;
 extern bool SURFACE_TENSION;
 extern int DIMENSIONS;
+extern bool FIRST_STEP;
+extern double FIRST_STEP_CORRECTION;
 
 void readParameters();

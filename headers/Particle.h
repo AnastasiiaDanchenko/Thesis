@@ -5,13 +5,13 @@
 
 class Particle {
 public:
-    Eigen::Vector3f position;
-    Eigen::Vector3f velocity;
-    Eigen::Vector3f acceleration;
+    Eigen::Vector3d position;
+    Eigen::Vector3d velocity;
+    Eigen::Vector3d acceleration;
 
-    float mass;
-    float density;
-    float pressure;
+    double mass;
+    double density;
+    double pressure;
 
     bool isFluid;
 
@@ -23,22 +23,22 @@ public:
     Eigen::Vector3i getCellNumber();
 
     // IISPH
-    Eigen::Vector3f predictedVelocity;
-    float sourceTerm;
-    float diagonal;
-    Eigen::Vector3f pressureAcceleration;
+    Eigen::Vector3d predictedVelocity;
+    double sourceTerm;
+    double diagonal;
+    Eigen::Vector3d pressureAcceleration;
 };
 
 class Particle2D {
 public:
-    Eigen::Vector2f position;
-    Eigen::Vector2f velocity;
-    Eigen::Vector2f acceleration;
-    Eigen::Vector2f normal;
+    Eigen::Vector2d position;
+    Eigen::Vector2d velocity;
+    Eigen::Vector2d acceleration;
+    Eigen::Vector2d normal;
 
-    float mass;
-    float density;
-    float pressure;
+    double mass;
+    double density;
+    double pressure;
 
     bool isFluid;
     bool isSurface;
@@ -51,13 +51,13 @@ public:
     Eigen::Vector2i getCellNumber();
 
     // IISPH
-    Eigen::Vector2f predictedVelocity;
-    float sourceTerm;
-    float diagonal;
-    Eigen::Vector2f pressureAcceleration;
-    Eigen::Vector2f dii;
-    float aii;
-    float predictedDensity;
-    float predictedPressure;
-    Eigen::Vector2f ci;
+    Eigen::Vector2d predictedVelocity;
+    double sourceTerm;
+    double diagonal;
+    Eigen::Vector2d pressureAcceleration;
+    Eigen::Vector2d dii;
+    double aii;
+    double predictedDensity;
+    double predictedPressure;
+    Eigen::Vector2d ci;
 };

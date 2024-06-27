@@ -9,7 +9,7 @@ void CalculateDensity2D() {
 		}
 
 		Particle2D& p = particles2D[i];
-		float density = 0.0f;
+		double density = 0.0f;
 
 		for (auto n : p.neighbors) {
 			density += n->mass * CubicSplineKernel2D(p.position - n->position);
@@ -28,15 +28,15 @@ void PredictVelocityAdvection2D() {
 		}
 
 		Particle2D& p = particles2D[i];
-		Eigen::Vector2f acceleration = GRAVITY2D;
+		Eigen::Vector2d acceleration = GRAVITY2D;
 
 		for (auto neighbor : p.neighbors) {
 			if (neighbor == &p) { continue; }
-			const Eigen::Vector2f r = p.position - neighbor->position;
-			const float rSquaredNorm = r.squaredNorm();
-			const Eigen::Vector2f kernel = CubicSplineKernelGradient2D(r);
+			const Eigen::Vector2d r = p.position - neighbor->position;
+			const double rSquaredNorm = r.squaredNorm();
+			const Eigen::Vector2d kernel = CubicSplineKernelGradient2D(r);
 
-			const Eigen::Vector2f v = p.velocity - neighbor->velocity;
+			const Eigen::Vector2d v = p.velocity - neighbor->velocity;
 			acceleration += 2 * VISCOSITY * neighbor->mass * v / neighbor->density * r.dot(kernel) /
 				(rSquaredNorm + 0.01f * pow(SPACING, 2));
 		}
@@ -55,7 +55,7 @@ void ComputeDii() {
 		}
 
 		Particle2D& p = particles2D[i];
-		Eigen::Vector2f dii = Eigen::Vector2f::Zero();
+		Eigen::Vector2d dii = Eigen::Vector2d::Zero();
 
 		for (auto neighbor : p.neighbors) {
 			dii -= neighbor->mass * CubicSplineKernelGradient2D(p.position - neighbor->position);
@@ -74,7 +74,7 @@ void ComputeAii() {
 		}
 
 		Particle2D& p = particles2D[i];
-		float aii = 0.0f;
+		double aii = 0.0f;
 
 		for (auto neighbor : p.neighbors) {
 			aii += p.mass * (p.dii + p.mass * pow(TIME_STEP, 2) / pow(p.density, 2) *
@@ -94,7 +94,7 @@ void PredictDensity2D() {
 		}
 
 		Particle2D& p = particles2D[i];
-		float density = p.density;
+		double density = p.density;
 
 		for (auto neighbor : p.neighbors) {
 			density += TIME_STEP * neighbor->mass * (p.predictedVelocity - neighbor->predictedVelocity).dot(
@@ -128,7 +128,7 @@ void SolvePressure2D() {
 			}
 
 			Particle2D& p = particles2D[i];
-			Eigen::Vector2f ci = Eigen::Vector2f::Zero();
+			Eigen::Vector2d ci = Eigen::Vector2d::Zero();
 
 			for (auto neighbor : p.neighbors) {
 				ci -= neighbor->pressure / pow(neighbor->density, 2) *
@@ -147,7 +147,7 @@ void SolvePressure2D() {
 			}
 
 			Particle2D& p = particles2D[i];
-			float newPressure = 0.0f;
+			double newPressure = 0.0f;
 
 			if (p.aii != 0) {
 				p.predictedPressure = REST_DENSITY - p.predictedDensity;
@@ -163,7 +163,7 @@ void SolvePressure2D() {
 							p.pressure).dot(CubicSplineKernelGradient2D(p.position - neighbor->position));
 					}
 				}
-				newPressure = std::max(0.0f, (1 - OMEGA) * p.pressure + OMEGA / p.aii * p.predictedPressure);
+				newPressure = std::max(0.0, (1 - OMEGA) * p.pressure + OMEGA / p.aii * p.predictedPressure);
 			}
 
 			p.pressure = newPressure;
@@ -193,7 +193,7 @@ void ComputePressureAcceleration2D() {
 		}
 
 		Particle2D& p = particles2D[i];
-		Eigen::Vector2f pressureAcceleration = Eigen::Vector2f::Zero();
+		Eigen::Vector2d pressureAcceleration = Eigen::Vector2d::Zero();
 
 		for (auto neighbor : p.neighbors) {
 			pressureAcceleration -= neighbor->mass * (p.pressure / pow(p.density, 2) + neighbor->pressure / pow(neighbor->density, 2)) *

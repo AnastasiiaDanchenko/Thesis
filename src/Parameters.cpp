@@ -9,32 +9,38 @@ int PARTICLES_PER_DIMENSION = 10;
 int PARTICLES_X = 10;
 int PARTICLES_Y = 10;
 int PARTICLES_Z = 10;
-float SPACING = 10.0f;
-int CELL_SIZE;
+int NB_FLUID_PARTICLES = 0;
+double SPACING = 10.0;
+double CELL_SIZE;
 
-float SUPPORT = 2.1 * SPACING;
-float REST_DENSITY = 1000.0f;
-float TIME_STEP = 0.01f;
-float STIFFNESS = 100000.0f;
-float VISCOSITY = 0.1f;
-float COHESION = 0.00001f;
+double SUPPORT = 2.0 * SPACING;
+double REST_DENSITY = 1000.0f;
+double TIME_STEP = 0.01f;
+double STIFFNESS = 100000.0f;
+double VISCOSITY = 0.01;
+double COHESION = 0.00001f;
+double MAX_TIME_STEP = 0.05f;
+int ITERATIONS_COUNT = 0;
 
-Eigen::Vector3f GRAVITY = Eigen::Vector3f(0.0f, -9.8f, 0.0f);
-Eigen::Vector2f GRAVITY2D = Eigen::Vector2f(0.0f, -9.8f);
+Eigen::Vector3d GRAVITY = Eigen::Vector3d(0.0f, -9.8f, 0.0f);
+Eigen::Vector2d GRAVITY2D = Eigen::Vector2d(0.0, -9.8);
 
-float GAMMA = 0.7f;
-float OMEGA = 0.5f;
-float AVG_DENSITY = 0.0f;
-float DENSITY_ERR = 0.0f;
-float ERR_THRESHOLD = 0.001f;
+double GAMMA = 0.7f;
+double OMEGA = 0.5f;
+double AVG_DENSITY = 0.0f;
+double DENSITY_ERR = 0.0f;
+double FIRST_ERR = 0.0f;
+double ERR_THRESHOLD = 0.001f;
 int NB_ITERATIONS = 0;
 
 std::string NS_METHOD;
 std::string SIMULATION;
 
 bool VISUALIZATION = true;
-bool SURFACE_TENSION = false;
+bool SURFACE_TENSION = true;
 int DIMENSIONS = 3;
+bool FIRST_STEP = true;
+double FIRST_STEP_CORRECTION = 1.0;
 
 void readParameters() {
 	std::ifstream file(fileName);
@@ -105,6 +111,17 @@ void readParameters() {
 		}
 		else if (parameterName == "error%") {
 			ERR_THRESHOLD = std::stod(parameterValue) * 0.01; // Convert to percentage
+		}
+		else if (parameterName == "surface_tension") {
+			if (parameterValue == "0") {
+				SURFACE_TENSION = false;
+			}
+			else {
+				SURFACE_TENSION = true;
+			}
+		}
+		else if (parameterName == "cohesion") {
+			COHESION = std::stod(parameterValue);
 		}
 	}
 }

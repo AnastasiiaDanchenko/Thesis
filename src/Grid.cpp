@@ -13,18 +13,21 @@ int GRID_DEPTH;
 // Initialize uniformed grid of fluid particles
 void InitFluid() {
     int depth = SCENE_DEPTH / SPACING - 1;
+    int nb_boundary_particles = particles.size();
 
     for (int i = 0; i < PARTICLES_X; i++) {
         for (int j = 0; j < PARTICLES_Y; j++) {
             for (int k = 3; k <= depth - 4; k++) {
                 Particle p;
 
-				p.position = Eigen::Vector3f((i + 4) * SPACING, (j + 4) * SPACING, (k + 1) * SPACING);
+				p.position = Eigen::Vector3d((i + 4) * SPACING, (j + 4) * SPACING, (k + 1) * SPACING);
 				p.ID = particles.size();
                 particles.push_back(p);
             }
         }
     }
+
+    NB_FLUID_PARTICLES = particles.size() - nb_boundary_particles;
 }
 
 // Initialize boundaries
@@ -39,7 +42,7 @@ void InitBoundaries() {
                 if (i < 3 || i > width - 4 || j < 3 || j > hight - 4 || k < 3 || k > depth - 4) {
                     Particle p;
 
-                    p.position = Eigen::Vector3f((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
+                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
                     p.isFluid = false;
                     p.ID = particles.size();
 
@@ -86,13 +89,14 @@ void InitFluid2D() {
 			Particle2D p;
 
             /*if (j % 2 == 0) {
-                p.position = Eigen::Vector2f((i + 4) * SPACING, (j + 4) * SPACING);
+                p.position = Eigen::Vector2d((i + 2) * SPACING, (j + 2) * SPACING);
             }
             else {
-                p.position = Eigen::Vector2f((i + 4.5) * SPACING, (j + 4) * SPACING);
+                p.position = Eigen::Vector2d((i + 2.5) * SPACING, (j + 2) * SPACING);
             }*/
 
-			p.position = Eigen::Vector2f((i + 9) * SPACING, (j + 10) * SPACING);
+            //p.position = Eigen::Vector2d((i + 2) * SPACING, (j + 2) * SPACING);
+            p.position = Eigen::Vector2d((i + 4) * SPACING, (j + 4) * SPACING);
 			p.ID = particles2D.size();
             particles2D.push_back(p);
 		}
@@ -105,10 +109,11 @@ void InitBoundaries2D() {
 
     for (int i = 0; i < width; i++) {
         for (int j = 0; j < hight; j++) {
+            //if (i < 1 || i > width - 2 || j < 1 || j > hight - 2) {
             if (i < 3 || i > width - 4 || j < 3 || j > hight - 4) {
 				Particle2D p;
 
-				p.position = Eigen::Vector2f((i + 1) * SPACING, (j + 1) * SPACING);
+				p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
 				p.isFluid = false;
 				p.ID = particles2D.size();
 
@@ -116,6 +121,51 @@ void InitBoundaries2D() {
 			}
 		}
 	}
+}
+
+void InitFluidForBoundaryTest2D() {
+    for (int i = 0; i < PARTICLES_X; i++) {
+        for (int j = 0; j < PARTICLES_Y; j++) {
+            Particle2D p;
+            p.position = Eigen::Vector2d((i + 7) * SPACING, (j + 7) * SPACING);
+            p.ID = particles2D.size();
+            particles2D.push_back(p);
+        }
+    }
+}
+
+void InitMovingThroughBoundaries2D() {
+    int width = (WINDOW_WIDTH / 2) / SPACING - 1;
+    int hight = (WINDOW_HEIGHT / 2) / SPACING - 1;
+
+    for (int i = 5; i < width - 5; i++) {
+        for (int j = 5; j < hight - 5; j++) {
+            if (i < 6 || i > width - 7 || j < 6 || j > hight - 7) {
+                Particle2D p;
+
+                p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+                p.isFluid = false;
+                p.ID = particles2D.size();
+
+                particles2D.push_back(p);
+            }
+        }
+    }
+}
+
+void MovingBoundary() {
+    for (int i = -15; i < 0; i++) {
+        for (int j = 3; j < 6; j++) {
+            Particle2D p;
+
+            p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+            p.isFluid = false;
+            p.ID = particles2D.size();
+            p.velocity = Eigen::Vector2d(10, 0.0);
+
+            particles2D.push_back(p);
+        }
+    }
 }
 
 void UniformGrid2D() {

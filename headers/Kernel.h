@@ -3,10 +3,10 @@
 
 #include "Grid.h"
 
-float CubicSplineKernel(const Eigen::Vector3f& r);
-Eigen::Vector3f CubicSplineKernelGradient(const Eigen::Vector3f& r);
+double CubicSplineKernel(const Eigen::Vector3d& r);
+Eigen::Vector3d CubicSplineKernelGradient(const Eigen::Vector3d& r);
 
-float CubicSplineKernel2D(Eigen::Vector2f r);
-Eigen::Vector2f CubicSplineKernelGradient2D(Eigen::Vector2f r);
+double CubicSplineKernel2D(Eigen::Vector2d r);
+Eigen::Vector2d CubicSplineKernelGradient2D(Eigen::Vector2d r);
 
-float CohesionSpline2D(Eigen::Vector2f r);
+double CohesionSpline2D(Eigen::Vector2d r);

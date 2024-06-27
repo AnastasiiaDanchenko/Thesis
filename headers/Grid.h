@@ -5,15 +5,15 @@
 
 struct GridCell {
     Eigen::Vector3i cellNumber;
-    Eigen::Vector3f minBounds;
-    Eigen::Vector3f maxBounds;
+    Eigen::Vector3d minBounds;
+    Eigen::Vector3d maxBounds;
     std::vector<Particle*> cellParticles;
 };
 
 struct GridCell2D {
 	Eigen::Vector2i cellNumber;
-	Eigen::Vector2f minBounds;
-	Eigen::Vector2f maxBounds;
+	Eigen::Vector2d minBounds;
+	Eigen::Vector2d maxBounds;
 	std::vector<Particle2D*> cellParticles;
 };
 
@@ -31,8 +31,11 @@ extern int GRID_DEPTH;
 
 void InitFluid();
 void InitFluid2D();
+void InitFluidForBoundaryTest2D();
 void InitBoundaries();
 void InitBoundaries2D();
+void InitMovingThroughBoundaries2D();
+void MovingBoundary();
 
 void UniformGrid();
 void UniformGrid2D();
