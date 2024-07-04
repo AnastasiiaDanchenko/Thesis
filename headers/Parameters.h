@@ -4,9 +4,9 @@
 #include <fstream>
 #include <sstream>
 #include <Eigen/Dense>
+#include <nlohmann/json.hpp>
 
-const std::string fileName = "parameters.csv";
-//const std::string fileName = "parameters2D.csv";
+const std::string fileName = "parameters.json";
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

@@ -1,5 +1,7 @@
 #include "..\headers\Parameters.h"
 
+using json = nlohmann::json;
+
 int WINDOW_WIDTH = 800;
 int WINDOW_HEIGHT = 800;
 int SCENE_DEPTH = 600;
@@ -42,96 +44,67 @@ bool FIRST_STEP = true;
 double FIRST_STEP_CORRECTION = 1.0;
 
 void readParameters() {
-	std::ifstream file(fileName);
+    std::ifstream file(fileName);
 
-	if (!file.is_open()) {
-		std::cout << "Error opening file " << fileName << std::endl;
-		std::exit(1);
-	}
+    if (!file.is_open()) {
+        std::cout << "Error opening file " << fileName << std::endl;
+        std::exit(1);
+    }
 
-	std::string line;
-	while (std::getline(file, line)) {
-		std::istringstream iss(line);
-		std::string parameterName;
-		std::string parameterValue;
-		std::getline(iss, parameterName, ',');
-		std::getline(iss, parameterValue, ',');
-		if (parameterName == "window_width") {
-			WINDOW_WIDTH = std::stoi(parameterValue);
-		}
-		else if (parameterName == "window_hight") {
-			WINDOW_HEIGHT = std::stoi(parameterValue);
-		}
-		else if (parameterName == "depth") {
-			SCENE_DEPTH = std::stoi(parameterValue);
-		}
-		else if (parameterName == "spacing") {
-			SPACING = std::stod(parameterValue);
-			CELL_SIZE = 2 * SPACING;
-		}
-		else if (parameterName == "support") {
-			SUPPORT = SPACING * std::stod(parameterValue);
-		}
-		else if (parameterName == "density") {
-			REST_DENSITY = std::stod(parameterValue);
-		}
-		else if (parameterName == "particles") {
-			PARTICLES_PER_DIMENSION = std::stoi(parameterValue);
-		}
-		else if (parameterName == "particlesX") {
-			PARTICLES_X = std::stoi(parameterValue);
-		}
-		else if (parameterName == "particlesY") {
-			PARTICLES_Y = std::stoi(parameterValue);
-		}
-		else if (parameterName == "particlesZ") {
-			PARTICLES_Z = std::stoi(parameterValue);
-		}
-		else if (parameterName == "timestep") {
-			TIME_STEP = std::stod(parameterValue);
-		}
-		else if (parameterName == "max_timestep") {
-			MAX_TIME_STEP = std::stod(parameterValue);
-			MAX_TIME_STEP = 0.005 * SPACING;
-		}
-		else if (parameterName == "stiffness") {
-			STIFFNESS = std::stod(parameterValue);
-		}
-		else if (parameterName == "viscosity") {
-			VISCOSITY = std::stod(parameterValue);
-		}
-		else if (parameterName == "neighbors") {
-			PARTICLE_NEIGHBORS = std::stoi(parameterValue);
-		}
-		else if (parameterName == "gamma") {
-			GAMMA = std::stod(parameterValue);
-		}
-		else if (parameterName == "omega") {
-			OMEGA = std::stod(parameterValue);
-		}
-		else if (parameterName == "dimensions") {
-			DIMENSIONS = std::stoi(parameterValue);
-		}
-		else if (parameterName == "error%") {
-			ERR_THRESHOLD = std::stod(parameterValue) * 0.01; // Convert to percentage
-		}
-		else if (parameterName == "surface_tension") {
-			if (parameterValue == "0") {
-				SURFACE_TENSION = false;
-			}
-			else {
-				SURFACE_TENSION = true;
-			}
-		}
-		else if (parameterName == "cohesion") {
-			COHESION = std::stod(parameterValue);
-		}
-	}
+    json j;
+    file >> j;
 
-	if (DIMENSIONS == 2) {
-		MAX_TIME_STEP = 0.005 * SPACING;
-	}
-	else if (DIMENSIONS == 3) {
-		MAX_TIME_STEP = 0.0025 * SPACING;
-	}
+    if (j.contains("dimensions")) DIMENSIONS = j["dimensions"].get<int>();
+    if (j.contains("support")) SUPPORT = SPACING * j["support"].get<double>();
+    if (j.contains("density")) REST_DENSITY = j["density"].get<double>();
+    if (j.contains("visualize neighbors")) PARTICLE_NEIGHBORS = j["visualize neighbors"].get<int>();
+
+    std::string dimension_key = (DIMENSIONS == 2) ? "2D" : "3D";
+
+    if (j.contains(dimension_key)) {
+        json dim_data = j[dimension_key];
+
+        if (dim_data.contains("window")) {
+            auto window = dim_data["window"];
+            WINDOW_WIDTH = window[0].get<int>();
+            WINDOW_HEIGHT = window[1].get<int>();
+            if (DIMENSIONS == 3 && window.size() > 2) {
+                SCENE_DEPTH = window[2].get<int>();
+            }
+        }
+
+        if (dim_data.contains("spacing")) {
+            SPACING = dim_data["spacing"].get<double>();
+            CELL_SIZE = 2 * SPACING;
+        }
+
+        if (dim_data.contains("particles nb")) {
+            auto particles_nb = dim_data["particles nb"];
+            PARTICLES_X = particles_nb[0].get<int>();
+            PARTICLES_Y = particles_nb[1].get<int>();
+            if (DIMENSIONS == 3 && particles_nb.size() > 2) {
+                PARTICLES_Z = particles_nb[2].get<int>();
+            }
+        }
+
+        if (dim_data.contains("timestep")) TIME_STEP = dim_data["timestep"].get<double>();
+        if (dim_data.contains("stiffness")) STIFFNESS = dim_data["stiffness"].get<double>();
+        if (dim_data.contains("viscosity")) VISCOSITY = dim_data["viscosity"].get<double>();
+        if (dim_data.contains("gamma")) GAMMA = dim_data["gamma"].get<double>();
+        if (dim_data.contains("omega")) OMEGA = dim_data["omega"].get<double>();
+        if (dim_data.contains("error, %")) ERR_THRESHOLD = dim_data["error, %"].get<double>() * 0.01;
+
+        if (dim_data.contains("surface_tension")) {
+            json surface_tension = dim_data["surface_tension"];
+            if (surface_tension.contains("enabled")) SURFACE_TENSION = surface_tension["enabled"].get<bool>();
+            if (surface_tension.contains("cohesion")) COHESION = surface_tension["cohesion"].get<double>();
+        }
+    }
+
+    if (DIMENSIONS == 2) {
+        MAX_TIME_STEP = 0.005 * SPACING;
+    }
+    else if (DIMENSIONS == 3) {
+        MAX_TIME_STEP = 0.0025 * SPACING;
+    }
 }
