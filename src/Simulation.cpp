@@ -9,6 +9,7 @@ void Simulation() {
 
 void SimulationIISPH() {
 	NSUniformGrid();
+	BoundaryMassUpdate();
 	ComputeDensity();
     PredictVelocity();
     ComputeDensityError();
@@ -38,14 +39,13 @@ void Initialization2D() {
 
 void MovingBoundaryInitialization() {
 	InitMovingThroughBoundaries2D();
-	MovingBoundary();
 	InitFluidForBoundaryTest2D();
 	UniformGrid2D();
 }
 
 void SimulationIISPH2D() {
 	NSUniformGrid2D();
-	BoundaryMassUpdate();
+	BoundaryMassUpdate2D();
 
 	ComputeDensity2D();
 	ComputeSurface2D();
@@ -59,7 +59,7 @@ void SimulationIISPH2D() {
 void MovingBoundaryIISPH2D() {
 	NSUniformGrid2D();
 
-	BoundaryMassUpdate();
+	BoundaryMassUpdate2D();
 	ComputeDensity2D();
 	ComputeSurface2D();
 	PredictVelocity2D();

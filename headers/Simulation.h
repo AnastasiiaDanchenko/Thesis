@@ -2,7 +2,6 @@
 #include <chrono>
 
 #include "ComputationsSPH.h"
-#include "ComputationsIISPH.h"
 #include "NeighborSearch.h"
 //#include "matplotlibcpp.h"
 

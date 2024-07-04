@@ -26,22 +26,22 @@ void Camera::Matrix(float width, float height, float depth, unsigned int shader)
 
 void Camera::Inputs(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        position += orientation * speed;
+        position += orientation * speed * 0.01f;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        position -= orientation * speed;
+        position -= orientation * speed * 0.01f;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        position -= glm::normalize(glm::cross(orientation, up)) * speed * 20.0f;
+        position -= glm::normalize(glm::cross(orientation, up)) * speed * 5.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        position += glm::normalize(glm::cross(orientation, up)) * speed * 20.0f;
+        position += glm::normalize(glm::cross(orientation, up)) * speed * 5.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        position += up * speed * 20.0f;
+        position += up * speed * 5.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        position -= up * speed * 20.0f;
+        position -= up * speed * 5.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         speed = 0.5f;

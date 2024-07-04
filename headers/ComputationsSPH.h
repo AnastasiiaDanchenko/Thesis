@@ -1,6 +1,7 @@
 #pragma once
 #include "Kernel.h"
 #include <omp.h>
+#include <limits>
 
 void ComputeDensityPressure();
 void ComputeAcceleration();
@@ -28,3 +29,4 @@ void CompressionConvergence2D();
 void UpdateParticles2D();
 
 void BoundaryMassUpdate();
+void BoundaryMassUpdate2D();

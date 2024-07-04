@@ -17,9 +17,9 @@ typedef enum {
 } Attributes;
 
 typedef struct {
-    double x, y, z;
-    double r, g, b;
-    double t;
+    float x, y, z;
+    float r, g, b;
+    float t;
 } Vertex;
 
 typedef enum {
@@ -142,7 +142,7 @@ void syncBuffers() {
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices[0]) * verticesCount, vertices);
 }
 
-void pushVertex(Eigen::Vector3d position, double r, double g, double b, double t) {
+void pushVertex(Eigen::Vector3d position, double r, double g, double b, float t) {
     if (verticesCount >= VERTICES_CAPACITY) {
         std::cerr << "Vertex buffer overflow!" << std::endl;
         exit(EXIT_FAILURE);
@@ -176,7 +176,7 @@ void Visualize() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a window
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 3D", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 3D", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window!" << std::endl;
         glfwTerminate();
@@ -218,8 +218,8 @@ void Visualize() {
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // boundary box
-    Eigen::Vector3d minBound = Eigen::Vector3d(SPACING * 3, SPACING * 3, SPACING * 3);
-    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING * 3, WINDOW_HEIGHT - SPACING * 3, SCENE_DEPTH - SPACING * 3);
+    Eigen::Vector3d minBound = Eigen::Vector3d(SPACING, SPACING, SPACING);
+    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH - SPACING / 2);
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
@@ -243,7 +243,7 @@ void Visualize() {
             if (p.isFluid) {
                 //colorize particles based on their speed
                 double speed = magnitude(p.velocity);
-                double hue = mapColor(speed, 0.0f, 1000.0f, 240.0f, 0.0f);
+                double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
@@ -259,7 +259,14 @@ void Visualize() {
                     (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
                     (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
                     p.position.x() >= minBound.x() && p.position.x() <= maxBound.x()) {
-					pushVertex(p.position, 1.0f, 1.0f, 1.0f, 1.0f);
+					
+                    double hue = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
+                    double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
+                    double value = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 1.0, 0.6);
+                    double r, g, b;
+                    HSVtoRGB(&r, &g, &b, hue, saturation, value);
+
+                    pushVertex(p.position, r, g, b, 1.0f);
 				}
 			}
 		}
@@ -280,29 +287,58 @@ void Visualize() {
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
 
         ImGui::Begin("Simulation Parameters");
-        ImGui::Text("Number of fluid particles: %d", NB_FLUID_PARTICLES);
-        ImGui::Text("\Time step:"); ImGui::SliderFloat("##TimeStep", reinterpret_cast<float*>(&TIME_STEP), 0.0001f, 0.3f);
-        ImGui::Text("\Viscosity:"); ImGui::SliderFloat("##Viscosity", reinterpret_cast<float*>(&VISCOSITY), 0.001f, 10.0f);
-        ImGui::Text("\Gamma:"); ImGui::SliderFloat("##Gamma", reinterpret_cast<float*>(&GAMMA), 0.001f, 1.0f);
-        ImGui::Text("\Omega:"); ImGui::SliderFloat("##Omega", reinterpret_cast<float*>(&OMEGA), 0.001f, 1.0f);
+        ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y * PARTICLES_Z);
+
+        float tempTimeStep = static_cast<float>(TIME_STEP);
+        ImGui::Text("\Time step:");
+        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, MAX_TIME_STEP)) {
+            TIME_STEP = static_cast<double>(tempTimeStep);
+        }
+
+        float tempGamma = static_cast<float>(GAMMA);
+        ImGui::Text("\Gamma:");
+        if (ImGui::SliderFloat("##Gamma", &tempGamma, 0.01, 1.0)) {
+            GAMMA = static_cast<double>(tempGamma);
+        }
+
+        float tempOmega = static_cast<float>(OMEGA);
+        ImGui::Text("\Omega:");
+        if (ImGui::SliderFloat("##Omega", &tempOmega, 0.01, 1.0)) {
+            OMEGA = static_cast<double>(tempOmega);
+        }
+
         ImGui::Text("\Rest Density: %f", REST_DENSITY);
         ImGui::Text("\Average Density: %f", AVG_DENSITY);
         ImGui::Text("\Density Error, %%: %f", DENSITY_ERR / REST_DENSITY * 100);
+        ImGui::Text("\Density Error before PPE, %%: %f", FIRST_ERR / REST_DENSITY * 100);
         ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 100));
+        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 150));
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
 
         ImGui::Begin("Simulation Controls");
         if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
         ImGui::SameLine();
-        if (ImGui::Button("Reset")) { particles.clear(); Initialization(); }
+        if (ImGui::Button("Reset")) {
+            particles.clear();
+            if (simulationType == 0) Initialization();
+            else if (simulationType == 1) MovingBoundaryInitialization();
+        }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
             SURFACE_TENSION = !SURFACE_TENSION;
             particles.clear(); Initialization();
         }
         if (ImGui::Button("Move forward one time step")) { SimulationIISPH(); }
+        if (ImGui::Button("Change simulation type")) {
+            simulationType = (simulationType + 1) % 2;
+            particles.clear();
+            if (simulationType == 0) Initialization();
+            else if (simulationType == 1) MovingBoundaryInitialization();
+        }
+        if (simulationType == 1) {
+            if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
+        }
         ImGui::End();
 
         ImGui::Render();
@@ -464,9 +500,9 @@ void Visualize2D() {
                 pushVertex2D(p.position.x(), p.position.y(), r, g, b);
             }
             else {
-                double hue = mapColor(p.mass, 0.0, 100000.0, 0.0, 30.0);
-                double saturation = mapColor(p.mass, 0.0, 100000.0, 0.0, 1.0);
-                double value = mapColor(p.mass, 0.0, 100000.0, 1.0, 0.6);
+                double hue = mapColor(p.mass, 0.0, SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
+                double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
+                double value = mapColor(p.mass, 0.0, SPACING * SPACING * REST_DENSITY, 1.0, 0.6);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
@@ -490,7 +526,7 @@ void Visualize2D() {
 
         float tempTimeStep = static_cast<float>(TIME_STEP);
         ImGui::Text("\Time step:");
-        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, 0.05)) {
+        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, MAX_TIME_STEP)) {
             TIME_STEP = static_cast<double>(tempTimeStep);
         }
 
@@ -513,7 +549,7 @@ void Visualize2D() {
         ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 120));
+        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 150));
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
 
         ImGui::Begin("Simulation Controls");
@@ -534,6 +570,9 @@ void Visualize2D() {
 			particles2D.clear();
 			if (simulationType == 0) Initialization2D();
 			else if (simulationType == 1) MovingBoundaryInitialization();
+        }
+        if (simulationType == 1) {
+            if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
         }
         ImGui::End();
 

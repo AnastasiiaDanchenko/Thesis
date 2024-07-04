@@ -9,7 +9,6 @@ int PARTICLES_PER_DIMENSION = 10;
 int PARTICLES_X = 10;
 int PARTICLES_Y = 10;
 int PARTICLES_Z = 10;
-int NB_FLUID_PARTICLES = 0;
 double SPACING = 10.0;
 double CELL_SIZE;
 
@@ -91,6 +90,10 @@ void readParameters() {
 		else if (parameterName == "timestep") {
 			TIME_STEP = std::stod(parameterValue);
 		}
+		else if (parameterName == "max_timestep") {
+			MAX_TIME_STEP = std::stod(parameterValue);
+			MAX_TIME_STEP = 0.005 * SPACING;
+		}
 		else if (parameterName == "stiffness") {
 			STIFFNESS = std::stod(parameterValue);
 		}
@@ -123,5 +126,12 @@ void readParameters() {
 		else if (parameterName == "cohesion") {
 			COHESION = std::stod(parameterValue);
 		}
+	}
+
+	if (DIMENSIONS == 2) {
+		MAX_TIME_STEP = 0.005 * SPACING;
+	}
+	else if (DIMENSIONS == 3) {
+		MAX_TIME_STEP = 0.0025 * SPACING;
 	}
 }

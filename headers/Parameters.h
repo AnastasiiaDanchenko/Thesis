@@ -5,10 +5,8 @@
 #include <sstream>
 #include <Eigen/Dense>
 
-// Read parameters for the SPH simulation from a .csv file
-//const std::string fileName = "parameters.csv";
-//const std::string fileName = "parametersIISPH2D.csv";
-const std::string fileName = "parametersIISPH.csv";
+const std::string fileName = "parameters.csv";
+//const std::string fileName = "parameters2D.csv";
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -25,7 +23,6 @@ extern int PARTICLES_PER_DIMENSION;
 extern int PARTICLES_X;
 extern int PARTICLES_Y;
 extern int PARTICLES_Z;
-extern int NB_FLUID_PARTICLES;
 extern double SPACING;
 extern double CELL_SIZE;
 

@@ -1,10 +1,10 @@
 #version 330 core
 
 in vec3 Color;
-in double Transparency;
+in float Transparency;
 
 void main() {
-	double distance = length(gl_PointCoord - vec2(0.5, 0.5));
+	float distance = length(gl_PointCoord - vec2(0.5, 0.5));
     if (distance > 0.5) {
         discard; // Discard the fragments outside the circle
     }

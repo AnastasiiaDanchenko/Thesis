@@ -12,22 +12,17 @@ int GRID_DEPTH;
 
 // Initialize uniformed grid of fluid particles
 void InitFluid() {
-    int depth = SCENE_DEPTH / SPACING - 1;
-    int nb_boundary_particles = particles.size();
-
     for (int i = 0; i < PARTICLES_X; i++) {
         for (int j = 0; j < PARTICLES_Y; j++) {
-            for (int k = 3; k <= depth - 4; k++) {
+            for (int k = 0; k < PARTICLES_Z; k++) {
                 Particle p;
 
-				p.position = Eigen::Vector3d((i + 4) * SPACING, (j + 4) * SPACING, (k + 1) * SPACING);
+                p.position = Eigen::Vector3d((i + 2) * SPACING, (j + 2) * SPACING, (k + 2) * SPACING);
 				p.ID = particles.size();
                 particles.push_back(p);
             }
         }
     }
-
-    NB_FLUID_PARTICLES = particles.size() - nb_boundary_particles;
 }
 
 // Initialize boundaries
@@ -36,10 +31,10 @@ void InitBoundaries() {
     int hight = WINDOW_HEIGHT / SPACING - 1;
     int depth = SCENE_DEPTH / SPACING - 1;
 
-    for (int i = 0; i < width; i++) {
-        for (int j = 0; j < hight; j++) {
-            for (int k = 0; k < depth; k++) {
-                if (i < 3 || i > width - 4 || j < 3 || j > hight - 4 || k < 3 || k > depth - 4) {
+    for (float i = 0; i < width; i += 0.5) {
+        for (float j = 0; j < hight; j += 0.5) {
+            for (float k = 0; k < depth; k += 0.5) {
+                if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1 || k < 0.5 || k > depth - 1) {
                     Particle p;
 
                     p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
@@ -153,7 +148,7 @@ void InitMovingThroughBoundaries2D() {
 }
 
 void MovingBoundary() {
-    for (int i = -15; i < 0; i++) {
+    for (int i = -((WINDOW_WIDTH / 2) / SPACING - 1) / 2; i < 0; i++) {
         for (int j = 3; j < 6; j++) {
             Particle2D p;
 
