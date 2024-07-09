@@ -7,7 +7,7 @@
   "2D": {
     "window":  [800, 800],
     "spacing": 5,
-    "particles nb": [50, 50],
+    "particles nb": [60, 60],
     "timestep": 0.05,
     "stiffness": 1000000000.0,
     "viscosity": 15,
@@ -21,9 +21,9 @@
   },
 
   "3D": {
-    "window": [600, 600, 500],
-    "spacing": 20.0,
-    "particles nb": [20, 20, 22],
+    "window": [500, 500, 500],
+    "spacing": 20,
+    "particles nb": [20, 20, 20],
     "timestep": 0.05,
     "stiffness": 1000000000.0,
     "viscosity": 15,

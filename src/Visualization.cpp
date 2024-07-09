@@ -277,7 +277,7 @@ void Visualize() {
         camera.Inputs(window);
         camera.Matrix(WINDOW_WIDTH, WINDOW_HEIGHT, SCENE_DEPTH, shader);
 
-        glPointSize(15.0f); // Set the point size
+        glPointSize(SPACING / 2); // Set the point size
         glEnable(GL_DEPTH_TEST); // Enable depth test
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
         glDisable(GL_DEPTH_TEST); // Disable depth test
@@ -337,7 +337,7 @@ void Visualize() {
             else if (simulationType == 1) MovingBoundaryInitialization();
         }
         if (simulationType == 1) {
-            if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
+            if (ImGui::Button("Start moving boundary")) { MovingBoundary2D(); }
         }
         ImGui::End();
 
@@ -477,8 +477,8 @@ void Visualize2D() {
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            if (simulationType == 0) SimulationIISPH2D();
-            else if (simulationType == 1) MovingBoundaryIISPH2D();
+            if (simulationType == 2) RotatingBoundaryIISPH2D();
+			else SimulationIISPH2D();
         }
 
         clearBuffers();
@@ -559,20 +559,31 @@ void Visualize2D() {
             particles2D.clear(); 
             if (simulationType == 0) Initialization2D();
             else if (simulationType == 1) MovingBoundaryInitialization();
+            else if (simulationType == 2) RotatingBoundaryInitialization();
         }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
             SURFACE_TENSION = !SURFACE_TENSION;
             particles2D.clear(); Initialization2D();
         }
-        if (ImGui::Button("Move forward one time step")) { SimulationIISPH2D(); }
+        if (ImGui::Button("Move forward one time step")) { 
+            if (simulationType == 2) RotatingBoundaryIISPH2D();
+			else SimulationIISPH2D(); 
+        }
         if (ImGui::Button("Change simulation type")) {
-            simulationType = (simulationType + 1) % 2;
+            simulationType = (simulationType + 1) % 3;
 			particles2D.clear();
-			if (simulationType == 0) Initialization2D();
+            if (simulationType == 0) {
+                PARTICLES_X *= 2;
+                Initialization2D();
+            }
 			else if (simulationType == 1) MovingBoundaryInitialization();
+            else if (simulationType == 2) {
+                PARTICLES_X /= 2;
+                RotatingBoundaryInitialization();
+            }
         }
         if (simulationType == 1) {
-            if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
+            if (ImGui::Button("Start moving boundary")) { MovingBoundary2D(); }
         }
         ImGui::End();
 

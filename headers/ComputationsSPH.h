@@ -30,3 +30,5 @@ void UpdateParticles2D();
 
 void BoundaryMassUpdate();
 void BoundaryMassUpdate2D();
+
+void RotateBoundary2D();

@@ -30,12 +30,17 @@ extern int GRID_HEIGHT;
 extern int GRID_DEPTH;
 
 void InitFluid();
+
+void InitBoundaries();
+
 void InitFluid2D();
 void InitFluidForBoundaryTest2D();
-void InitBoundaries();
+void InitFluidForRotatingTest2D();
+
 void InitBoundaries2D();
 void InitMovingThroughBoundaries2D();
-void MovingBoundary();
+void MovingBoundary2D();
+void RotatingBoundary2D();
 
 void UniformGrid();
 void UniformGrid2D();

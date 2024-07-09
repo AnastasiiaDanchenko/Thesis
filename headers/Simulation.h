@@ -9,7 +9,9 @@
 
 void Initialization();
 void Initialization2D();
+
 void MovingBoundaryInitialization();
+void RotatingBoundaryInitialization();
 
 void Simulation();
 void SimulationIISPH();
@@ -17,3 +19,4 @@ void Simulation2D();
 void SimulationIISPH2D();
 
 void MovingBoundaryIISPH2D();
+void RotatingBoundaryIISPH2D();

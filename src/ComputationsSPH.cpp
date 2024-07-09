@@ -611,3 +611,35 @@ void BoundaryMassUpdate() {
         }
     }
 }
+
+void RotateBoundary2D() {
+    double maxVelocity = 0.0;
+
+    int width_max = WINDOW_WIDTH / SPACING / 5;
+    int width_avg = WINDOW_WIDTH / SPACING / 10;
+    int height_avg = WINDOW_HEIGHT / SPACING / 7;
+
+#pragma omp parallel for
+    for (int i = 0; i < particles2D.size(); i++) {
+        Particle2D& p = particles2D[i];
+
+        if (p.isFluid == true) {
+            p.velocity = p.predictedVelocity + TIME_STEP * p.pressureAcceleration;
+            p.position += TIME_STEP * p.velocity;
+        }
+        else if (p.ID >= ROTATING_BOUNDARY_ID) {
+            const Eigen::Vector2d center = Eigen::Vector2d((width_max + width_avg) * SPACING, height_avg * SPACING);
+
+            double radius = (p.position - center).norm();
+            double angularVelocity = 0.2;
+            
+            double angle = std::atan2(p.position.y() - center.y(), p.position.x() - center.x()) + angularVelocity * TIME_STEP;
+
+            p.position = center + Eigen::Vector2d(radius * std::cos(angle), radius * std::sin(angle));
+        }
+
+        maxVelocity = std::max(maxVelocity, p.velocity.norm());
+    }
+
+    TIME_STEP = (maxVelocity < std::numeric_limits<double>::epsilon()) ? MAX_TIME_STEP : std::min(MAX_TIME_STEP, 0.4 * SPACING / maxVelocity);
+}

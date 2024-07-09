@@ -37,7 +37,7 @@ void InitBoundaries() {
                 if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1 || k < 0.5 || k > depth - 1) {
                     Particle p;
 
-                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
+                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 0.5) * SPACING, (k + 1) * SPACING);
                     p.isFluid = false;
                     p.ID = particles.size();
 
@@ -147,15 +147,107 @@ void InitMovingThroughBoundaries2D() {
     }
 }
 
-void MovingBoundary() {
+void MovingBoundary2D() {
     for (int i = -((WINDOW_WIDTH / 2) / SPACING - 1) / 2; i < 0; i++) {
         for (int j = 3; j < 6; j++) {
             Particle2D p;
 
-            p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+            p.position = Eigen::Vector2d((i + 1) * SPACING, j * SPACING + WINDOW_HEIGHT / 10);
             p.isFluid = false;
             p.ID = particles2D.size();
-            p.velocity = Eigen::Vector2d(15, 0.0);
+            p.velocity = Eigen::Vector2d(20, 0.0);
+
+            particles2D.push_back(p);
+        }
+    }
+}
+
+Eigen::Vector2d rotatePlane(const Eigen::Vector2d& center, const Eigen::Vector2d& pos0, int angle) {
+    double angleRad = angle * M_PI / 180;
+    double x = center.x() + cos(angleRad) * (pos0.x() - center.x()) - sin(angleRad) * (pos0.y() - center.y());
+    double y = center.y() + sin(angleRad) * (pos0.x() - center.x()) + cos(angleRad) * (pos0.y() - center.y());
+
+    return Eigen::Vector2d(x, y);
+}
+
+void RotatingBoundary2D() {
+    int width_max = WINDOW_WIDTH / SPACING / 5;
+    int width_avg = WINDOW_WIDTH / SPACING / 10;
+
+    int height_avg = WINDOW_HEIGHT / SPACING / 7;
+
+    const Eigen::Vector2d center = Eigen::Vector2d((width_max + width_avg) * SPACING, height_avg * SPACING);
+    const double angularVelocity = 0.05;
+
+    for (int i = 0; i < width_max; i++) {
+        Particle2D p0, p1, p2, p3;
+
+        if (i == width_avg) {
+            p0.position = Eigen::Vector2d((i + width_max + 2.5) * SPACING, (height_avg + 1) * SPACING);
+            p0.isFluid = false;
+            p0.ID = particles2D.size();
+
+            particles2D.push_back(p0);
+
+            p1.position = rotatePlane(center, p0.position, 45);
+            p1.isFluid = false;
+            p1.ID = particles2D.size();
+
+            particles2D.push_back(p1);
+
+            p2.position = rotatePlane(center, p0.position, 90);
+            p2.isFluid = false;
+            p2.ID = particles2D.size();
+
+            particles2D.push_back(p2);
+
+            p3.position = rotatePlane(center, p0.position, 135);
+            p3.isFluid = false;
+            p3.ID = particles2D.size();
+
+            particles2D.push_back(p3);
+
+            p0.position = Eigen::Vector2d((i + width_max - 2.5) * SPACING, (height_avg - 1) * SPACING);
+        }
+        else {
+            p0.position = Eigen::Vector2d((i + width_max) * SPACING, height_avg * SPACING);
+        }
+        p0.isFluid = false;
+		p0.ID = particles2D.size();
+
+		particles2D.push_back(p0);
+
+        p1.position = rotatePlane(center, p0.position, 45);
+        p1.isFluid = false;
+        p1.ID = particles2D.size();
+
+        particles2D.push_back(p1);
+
+        p2.position = rotatePlane(center, p0.position, 90);
+        p2.isFluid = false;
+        p2.ID = particles2D.size();
+
+        particles2D.push_back(p2);
+
+        p3.position = rotatePlane(center, p0.position, 135);
+        p3.isFluid = false;
+        p3.ID = particles2D.size();
+
+        particles2D.push_back(p3);
+
+        if (i == 0) {
+            ROTATING_BOUNDARY_ID = p0.ID;
+        }
+	}
+}
+
+void InitFluidForRotatingTest2D() {
+    for (int i = 1; i < WINDOW_WIDTH / SPACING / 4; i++) {
+        for (int j = (WINDOW_HEIGHT / SPACING - 1) / 4 + 1; j < (WINDOW_HEIGHT / SPACING - 1) / 4 + 35; j++) {
+            Particle2D p;
+
+            p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+            p.ID = particles2D.size();
 
             particles2D.push_back(p);
         }
