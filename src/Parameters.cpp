@@ -23,7 +23,7 @@ double COHESION = 0.00001f;
 double MAX_TIME_STEP = 0.05f;
 int ITERATIONS_COUNT = 0;
 
-Eigen::Vector3d GRAVITY = Eigen::Vector3d(0.0f, -9.8f, 0.0f);
+Eigen::Vector3d GRAVITY = Eigen::Vector3d(0.0, -9.8, 0.0);
 Eigen::Vector2d GRAVITY2D = Eigen::Vector2d(0.0, -9.8);
 
 double GAMMA = 0.7f;
@@ -56,7 +56,7 @@ void readParameters() {
     file >> j;
 
     if (j.contains("dimensions")) DIMENSIONS = j["dimensions"].get<int>();
-    if (j.contains("support")) SUPPORT = SPACING * j["support"].get<double>();
+    if (j.contains("support")) SUPPORT = j["support"].get<double>();
     if (j.contains("density")) REST_DENSITY = j["density"].get<double>();
     if (j.contains("visualize neighbors")) PARTICLE_NEIGHBORS = j["visualize neighbors"].get<int>();
 
@@ -77,6 +77,7 @@ void readParameters() {
         if (dim_data.contains("spacing")) {
             SPACING = dim_data["spacing"].get<double>();
             CELL_SIZE = 2 * SPACING;
+            SUPPORT *= SPACING;
         }
 
         if (dim_data.contains("particles nb")) {
@@ -107,5 +108,6 @@ void readParameters() {
     }
     else if (DIMENSIONS == 3) {
         MAX_TIME_STEP = 0.0025 * SPACING;
+        std::cout << "Max time step: " << MAX_TIME_STEP << std::endl;
     }
 }

@@ -607,7 +607,7 @@ void BoundaryMassUpdate() {
                     kernelSum += CubicSplineKernel(p.position - neighbor->position);
                 }
             }
-            p.mass = REST_DENSITY * 0.81 / kernelSum;
+            p.mass = REST_DENSITY * 0.8 / kernelSum;
         }
     }
 }

@@ -219,7 +219,8 @@ void Visualize() {
 
     // boundary box
     Eigen::Vector3d minBound = Eigen::Vector3d(SPACING, SPACING, SPACING);
-    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH - SPACING / 2);
+    //Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH - SPACING / 2);
+    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING, WINDOW_HEIGHT - SPACING, SCENE_DEPTH - SPACING);
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
@@ -248,6 +249,14 @@ void Visualize() {
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
                 pushVertex(p.position, r, g, b, 1.0f);
+
+                /*bool isNeighbor = false;
+                for (auto& n : p.neighbors) {
+                    if (n == &particles[PARTICLE_NEIGHBORS]) { isNeighbor = true; break; }
+                }
+                if (p.ID == PARTICLE_NEIGHBORS) { pushVertex(p.position, 1.0f, 1.0f, 0.0f, 1.0f); }
+                else if (isNeighbor) { pushVertex(p.position, 0.0f, 1.0f, 0.0f, 1.0f); }
+                else { pushVertex(p.position, 0.2f, 0.5f, 1.0f, 1.0f); }*/
             }
             else {
                 if ((p.position.x() == minBound.x() || p.position.x() == maxBound.x()) && 
@@ -277,7 +286,7 @@ void Visualize() {
         camera.Inputs(window);
         camera.Matrix(WINDOW_WIDTH, WINDOW_HEIGHT, SCENE_DEPTH, shader);
 
-        glPointSize(SPACING / 2); // Set the point size
+        glPointSize(15); // Set the point size
         glEnable(GL_DEPTH_TEST); // Enable depth test
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
         glDisable(GL_DEPTH_TEST); // Disable depth test
@@ -322,8 +331,7 @@ void Visualize() {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
             particles.clear();
-            if (simulationType == 0) Initialization();
-            else if (simulationType == 1) MovingBoundaryInitialization();
+            Initialization();
         }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
             SURFACE_TENSION = !SURFACE_TENSION;
@@ -331,13 +339,7 @@ void Visualize() {
         }
         if (ImGui::Button("Move forward one time step")) { SimulationIISPH(); }
         if (ImGui::Button("Change simulation type")) {
-            simulationType = (simulationType + 1) % 2;
-            particles.clear();
-            if (simulationType == 0) Initialization();
-            else if (simulationType == 1) MovingBoundaryInitialization();
-        }
-        if (simulationType == 1) {
-            if (ImGui::Button("Start moving boundary")) { MovingBoundary2D(); }
+            Initialization();
         }
         ImGui::End();
 

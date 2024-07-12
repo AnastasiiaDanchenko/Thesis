@@ -37,7 +37,7 @@ void InitBoundaries() {
                 if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1 || k < 0.5 || k > depth - 1) {
                     Particle p;
 
-                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 0.5) * SPACING, (k + 1) * SPACING);
+                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
                     p.isFluid = false;
                     p.ID = particles.size();
 
@@ -46,6 +46,21 @@ void InitBoundaries() {
 			}
         }
     }
+
+    /*for (float i = 0; i < width; i ++) {
+        for (float j = 0; j < hight; j ++) {
+            for (float k = 0; k < depth; k ++) {
+                if (i < 1 || i > width - 2 || j < 1 || j > hight - 2 || k < 1 || k > depth - 2) {
+                    Particle p;
+
+                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
+                    p.isFluid = false;
+                    p.ID = particles.size();
+                    particles.push_back(p);
+                }
+            }
+        }
+    }*/
 }
 
 void UniformGrid() {
