@@ -16,12 +16,17 @@ void SimulationIISPH() {
     ComputeLaplacian();
     CompressionConvergence();
     UpdateParticles();
+
+	NSghostsGrid();
+	UpdateGhosts();
 }
 
 void Initialization() {
     InitBoundaries();
     InitFluid();
     UniformGrid();
+
+	InitGhostFluid();
 }
 
 void Simulation2D() {

@@ -2,6 +2,7 @@
 
 std::vector<Particle> particles;
 std::vector<Particle2D> particles2D;
+std::vector<Particle> ghostParticles;
 
 std::vector<GridCell> grid;
 std::vector<GridCell2D> grid2D;
@@ -21,6 +22,17 @@ void InitFluid() {
 				p.ID = particles.size();
                 particles.push_back(p);
             }
+        }
+    }
+}
+
+void InitGhostFluid() {
+    for (int i = 0; i < PARTICLES_X; i++) {
+        for (int j = 0; j < PARTICLES_Y; j++) {
+            Particle p;
+
+            p.position = Eigen::Vector3d((i + 2) * SPACING, (j + 2) * SPACING, SCENE_DEPTH / 2);
+            ghostParticles.push_back(p);
         }
     }
 }

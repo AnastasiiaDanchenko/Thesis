@@ -20,6 +20,8 @@ struct GridCell2D {
 // Particle container
 extern std::vector<Particle> particles;
 extern std::vector<Particle2D> particles2D;
+extern std::vector<Particle> ghostParticles;
+
 extern std::vector<GridCell> grid;
 extern std::vector<GridCell2D> grid2D;
 extern std::vector<std::list<Particle*>> linearGrid;
@@ -30,6 +32,7 @@ extern int GRID_HEIGHT;
 extern int GRID_DEPTH;
 
 void InitFluid();
+void InitGhostFluid();
 
 void InitBoundaries();
 

@@ -643,3 +643,30 @@ void RotateBoundary2D() {
 
     TIME_STEP = (maxVelocity < std::numeric_limits<double>::epsilon()) ? MAX_TIME_STEP : std::min(MAX_TIME_STEP, 0.4 * SPACING / maxVelocity);
 }
+
+void UpdateGhosts() {
+#pragma omp parallel for
+    for (int i = 0; i < ghostParticles.size(); i++) {
+		Particle& g = ghostParticles[i];
+		
+        double density = 0, pressure = 0, weight = 0;
+        Eigen::Vector3d velocity = Eigen::Vector3d::Zero();
+
+        for (auto p : g.neighbors) {
+            // weighted sum of the density of the neighbors depending on the distance
+            double distance = (g.position - p->position).norm();
+            weight += 1 / distance;
+
+            density += 1 / distance * p->density;
+            pressure += 1 / distance * p->pressure;
+            velocity += 1 / distance * p->velocity;
+		}
+        
+		g.density = density / weight;
+        g.pressure = pressure / weight;
+		g.velocity.x() = velocity.x() / weight;
+        g.velocity.y() = velocity.y() / weight;
+
+        g.position += TIME_STEP * g.velocity;
+	}
+}

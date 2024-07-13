@@ -57,7 +57,8 @@ int main() {
     }
     else if (DIMENSIONS == 3) {
         Initialization();
-        Visualize();
+        //Visualize();
+        VisualizeGhosts();
 	}
 
     return 0;

@@ -219,8 +219,7 @@ void Visualize() {
 
     // boundary box
     Eigen::Vector3d minBound = Eigen::Vector3d(SPACING, SPACING, SPACING);
-    //Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH - SPACING / 2);
-    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING, WINDOW_HEIGHT - SPACING, SCENE_DEPTH - SPACING);
+    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH - SPACING / 2);
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
@@ -248,7 +247,7 @@ void Visualize() {
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                pushVertex(p.position, r, g, b, 1.0f);
+                pushVertex(p.position, r, g, b, 0.1f);
 
                 /*bool isNeighbor = false;
                 for (auto& n : p.neighbors) {
@@ -279,6 +278,16 @@ void Visualize() {
 				}
 			}
 		}
+
+        for (auto p : ghostParticles) {
+            if (p.isFluid) {
+                double hue = mapColor(p.density, 950.0f, 1000.0f, 240.0f, 0.0f);
+                double r, g, b;
+                HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
+
+                pushVertex(p.position, r, g, b, 1.0f);
+            }
+        }
 
         syncBuffers();
 
@@ -601,6 +610,163 @@ void Visualize2D() {
         saveImage(filename.c_str(), window);
 
         count++;*/
+    }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glDeleteProgram(shader);
+    glfwTerminate();
+}
+
+void VisualizeGhosts() {
+    // Initialize GLFW
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Set the OpenGL version to 3.3 to use modern shaders
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    // Create a window
+    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 3D : projection onto plane", nullptr, nullptr);
+    if (!window) {
+        std::cerr << "Failed to create GLFW window!" << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+
+    glfwMakeContextCurrent(window);
+
+    // Initialize GLEW
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "Failed to initialize GLEW!" << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Set the background color
+    glClearColor(.05f, .05f, .05f, 1.0f);
+
+    // Copile and link the shaders
+    ShaderProgramSource source = ParseShader("Shaders/vbo2D.vert", "Shaders/vbo2D.frag");
+    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+
+    glUseProgram(shader);
+    GLuint resolutionUniform = glGetUniformLocation(shader, "resolution");
+    glUniform2f(resolutionUniform, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    // Initialize the buffers
+    initBuffers2D();
+
+    // Initialize ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    // event loop
+    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
+        if (isSimulationRunning) {
+            SimulationIISPH();
+        }
+
+        clearBuffers();
+
+        // Render ImGui
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        glViewport(IMGUI_WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        for (auto& p : ghostParticles) {
+            if (p.isFluid) {
+                double speed = sqrt(p.velocity.x() * p.velocity.x() + p.velocity.y() * p.velocity.y());
+                double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
+                double r, g, b;
+                HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
+
+                pushVertex2D(p.position.x() / 2, p.position.y() / 2, r, g, b);
+            }
+            else {
+                double hue = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
+                double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
+                double value = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 1.0, 0.6);
+                double r, g, b;
+                HSVtoRGB(&r, &g, &b, hue, saturation, value);
+
+                pushVertex2D(p.position.x(), p.position.y(), r, g, b);
+            }
+        }
+
+        syncBuffers2D();
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glPointSize(SPACING); // Set the point size
+        glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
+
+        //set fixed position for imgui window
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
+
+        ImGui::Begin("Simulation Parameters");
+        ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y * PARTICLES_Z);
+
+        float tempTimeStep = static_cast<float>(TIME_STEP);
+        ImGui::Text("\Time step:");
+        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, MAX_TIME_STEP)) {
+            TIME_STEP = static_cast<double>(tempTimeStep);
+        }
+
+        float tempGamma = static_cast<float>(GAMMA);
+        ImGui::Text("\Gamma:");
+        if (ImGui::SliderFloat("##Gamma", &tempGamma, 0.01, 1.0)) {
+            GAMMA = static_cast<double>(tempGamma);
+        }
+
+        float tempOmega = static_cast<float>(OMEGA);
+        ImGui::Text("\Omega:");
+        if (ImGui::SliderFloat("##Omega", &tempOmega, 0.01, 1.0)) {
+            OMEGA = static_cast<double>(tempOmega);
+        }
+
+        ImGui::Text("\Rest Density: %f", REST_DENSITY);
+        ImGui::Text("\Average Density: %f", AVG_DENSITY);
+        ImGui::Text("\Density Error, %%: %f", DENSITY_ERR / REST_DENSITY * 100);
+        ImGui::Text("\Density Error before PPE, %%: %f", FIRST_ERR / REST_DENSITY * 100);
+        ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
+        ImGui::End();
+
+        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 150));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
+
+        ImGui::Begin("Simulation Controls");
+        if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            particles.clear();
+            Initialization();
+        }
+        if (ImGui::Button("Move forward one time step")) {
+            SimulationIISPH();
+        }
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     ImGui_ImplOpenGL3_Shutdown();

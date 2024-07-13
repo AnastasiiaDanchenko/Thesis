@@ -7,3 +7,4 @@
 void QuadraticSearch();
 void NSUniformGrid();
 void NSUniformGrid2D();
+void NSghostsGrid();

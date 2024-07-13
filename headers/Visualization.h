@@ -20,3 +20,4 @@ void VisualizationVBO();
 
 void Visualize();
 void Visualize2D();
+void VisualizeGhosts();

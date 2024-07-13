@@ -32,3 +32,5 @@ void BoundaryMassUpdate();
 void BoundaryMassUpdate2D();
 
 void RotateBoundary2D();
+
+void UpdateGhosts();
