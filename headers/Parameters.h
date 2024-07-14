@@ -54,6 +54,6 @@ extern bool SURFACE_TENSION;
 extern int DIMENSIONS;
 extern bool FIRST_STEP;
 extern double FIRST_STEP_CORRECTION;
-extern int ROTATING_BOUNDARY_ID;
+extern int BOUNDARY_TEST_ID;
 
 void readParameters();

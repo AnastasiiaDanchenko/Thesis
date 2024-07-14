@@ -266,13 +266,14 @@ void Visualize() {
             else {
                 if ((p.position.x() == minBound.x() || p.position.x() == maxBound.x()) && 
                     (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
-                    p.position.z() >= minBound.z() && p.position.z() <= maxBound.z() ||
+                     p.position.z() >= minBound.z() && p.position.z() <= maxBound.z() ||
                     (p.position.x() == minBound.x() || p.position.x() == maxBound.x()) &&
                     (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
-                    p.position.y() >= minBound.y() && p.position.y() <= maxBound.y() || 
+                     p.position.y() >= minBound.y() && p.position.y() <= maxBound.y() || 
                     (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
                     (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
-                    p.position.x() >= minBound.x() && p.position.x() <= maxBound.x()) {
+                     p.position.x() >= minBound.x() && p.position.x() <= maxBound.x() ||
+                     p.ID >= BOUNDARY_TEST_ID) {
 					
                     double hue = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
                     double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
@@ -281,7 +282,7 @@ void Visualize() {
                     HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
                     pushVertex(p.position, r, g, b, 1.0f);
-				}
+                }
 			}
 		}
 
@@ -347,14 +348,8 @@ void Visualize() {
             particles.clear();
             Initialization();
         }
-        if (ImGui::Button("Surface Tension: ON/OFF")) {
-            SURFACE_TENSION = !SURFACE_TENSION;
-            particles.clear(); Initialization();
-        }
         if (ImGui::Button("Move forward one time step")) { SimulationIISPH(); }
-        if (ImGui::Button("Change simulation type")) {
-            Initialization();
-        }
+        if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
         ImGui::End();
 
         ImGui::Render();

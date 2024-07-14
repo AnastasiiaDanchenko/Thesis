@@ -52,6 +52,7 @@ void InitBoundaries() {
                     p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
                     p.isFluid = false;
                     p.ID = particles.size();
+                    BOUNDARY_TEST_ID = p.ID;
 
                     particles.push_back(p);
                 }
@@ -102,6 +103,23 @@ void GridUpdate() {
         }
         grid[cellNumber.x() + cellNumber.y() * GRID_WIDTH + 
              cellNumber.z() * GRID_WIDTH * GRID_HEIGHT].cellParticles.push_back(&p);
+    }
+}
+
+void MovingBoundary() {
+    for (int i = -20; i < 0; i++) {
+        for (int j = -1; j < 2; j++) {
+            for (int k = 0; k < (SCENE_DEPTH / SPACING - 1) / 2; k++) {
+				Particle p;
+
+				p.position = Eigen::Vector3d(i * SPACING, j * SPACING, (k + 1) * SPACING);
+				p.isFluid = false;
+				p.ID = particles.size();
+				p.velocity = Eigen::Vector3d(20, 0.0, 0.0);
+
+				particles.push_back(p);
+			}
+        }
     }
 }
 
@@ -263,7 +281,7 @@ void RotatingBoundary2D() {
         particles2D.push_back(p3);
 
         if (i == 0) {
-            ROTATING_BOUNDARY_ID = p0.ID;
+            BOUNDARY_TEST_ID = p0.ID;
         }
 	}
 }

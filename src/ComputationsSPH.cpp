@@ -71,6 +71,12 @@ void UpdateParticles() {
         }
         p.position += TIME_STEP * p.velocity;
         maxVelocity = std::max(maxVelocity, p.velocity.norm());
+
+        // Delete particles that are out of bounds
+        if (p.position.x() < - WINDOW_WIDTH || p.position.x() > WINDOW_WIDTH  * 2 || 
+            p.position.y() < -WINDOW_HEIGHT || p.position.y() > WINDOW_HEIGHT * 2) {
+			particles.erase(particles.begin() + i);
+		}
     }
 
     TIME_STEP = (maxVelocity < std::numeric_limits<double>::epsilon()) ? MAX_TIME_STEP : std::min(MAX_TIME_STEP, 0.4 * SPACING / maxVelocity);
@@ -627,7 +633,7 @@ void RotateBoundary2D() {
             p.velocity = p.predictedVelocity + TIME_STEP * p.pressureAcceleration;
             p.position += TIME_STEP * p.velocity;
         }
-        else if (p.ID >= ROTATING_BOUNDARY_ID) {
+        else if (p.ID >= BOUNDARY_TEST_ID) {
             const Eigen::Vector2d center = Eigen::Vector2d((width_max + width_avg) * SPACING, height_avg * SPACING);
 
             double radius = (p.position - center).norm();

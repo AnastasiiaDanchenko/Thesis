@@ -35,6 +35,7 @@ void InitFluid();
 void InitGhostFluid();
 
 void InitBoundaries();
+void MovingBoundary();
 
 void InitFluid2D();
 void InitFluidForBoundaryTest2D();

@@ -42,7 +42,7 @@ bool SURFACE_TENSION = true;
 int DIMENSIONS = 3;
 bool FIRST_STEP = true;
 double FIRST_STEP_CORRECTION = 1.0;
-int ROTATING_BOUNDARY_ID = -1;
+int BOUNDARY_TEST_ID = -1;
 
 void readParameters() {
     std::ifstream file(fileName);
