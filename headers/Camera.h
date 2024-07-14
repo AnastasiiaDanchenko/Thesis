@@ -22,7 +22,7 @@ public:
 	int width, height;
 
 	float speed = 0.1f;
-	float sensitivity = 100.0f;
+	float sensitivity = 50.0f;
 
 	Camera(int width, int height, int depth);
 

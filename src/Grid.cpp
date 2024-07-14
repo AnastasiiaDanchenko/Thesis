@@ -41,7 +41,7 @@ void InitGhostFluid() {
 void InitBoundaries() {
     int width = WINDOW_WIDTH / SPACING - 1;
     int hight = WINDOW_HEIGHT / SPACING - 1;
-    int depth = SCENE_DEPTH / SPACING - 1;
+    int depth = (SCENE_DEPTH / SPACING - 1) / 2;
 
     for (float i = 0; i < width; i += 0.5) {
         for (float j = 0; j < hight; j += 0.5) {

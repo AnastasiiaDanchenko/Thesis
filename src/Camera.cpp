@@ -3,7 +3,7 @@
 Camera::Camera(int width, int height, int depth) {
     this->width = width;
     this->height = height;
-    this->position = glm::vec3(width / 5, height / 5, -depth);
+    this->position = glm::vec3(0, 0, -depth);
     this->orientation = glm::vec3(width, height, 0.0f);
 }
 
@@ -16,6 +16,10 @@ void Camera::Matrix(float width, float height, float depth, unsigned int shader)
     glm::mat4 view = glm::lookAt(this->position, this->position + this->orientation, this->up);
     GLuint viewUniform = glGetUniformLocation(shader, "view");
     glUniformMatrix4fv(viewUniform, 1, GL_FALSE, glm::value_ptr(view));
+
+    glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
+    GLint viewPosLoc = glGetUniformLocation(shader, "viewPos");
+    glUniform3f(viewPosLoc, cameraPos.x, cameraPos.y, cameraPos.z);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));

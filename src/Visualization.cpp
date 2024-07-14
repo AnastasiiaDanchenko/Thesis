@@ -204,6 +204,12 @@ void Visualize() {
 
     glUseProgram(shader);
 
+    GLint lightPosLoc = glGetUniformLocation(shader, "lightPosition");
+    GLint lightColorLoc = glGetUniformLocation(shader, "lightColor");
+
+    glUniform3f(lightPosLoc, 0.0f, WINDOW_HEIGHT, SCENE_DEPTH);
+    glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
+
     // Shader inputs were here
     Camera camera(WINDOW_WIDTH, WINDOW_HEIGHT, SCENE_DEPTH);
 
@@ -219,7 +225,7 @@ void Visualize() {
 
     // boundary box
     Eigen::Vector3d minBound = Eigen::Vector3d(SPACING, SPACING, SPACING);
-    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH - SPACING / 2);
+    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH / 2 - SPACING / 2);
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
@@ -247,7 +253,7 @@ void Visualize() {
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                pushVertex(p.position, r, g, b, 0.1f);
+                pushVertex(p.position, r, g, b, 1.0f);
 
                 /*bool isNeighbor = false;
                 for (auto& n : p.neighbors) {
@@ -279,7 +285,7 @@ void Visualize() {
 			}
 		}
 
-        for (auto p : ghostParticles) {
+        /*for (auto p : ghostParticles) {
             if (p.isFluid) {
                 double hue = mapColor(p.density, 950.0f, 1000.0f, 240.0f, 0.0f);
                 double r, g, b;
@@ -287,7 +293,7 @@ void Visualize() {
 
                 pushVertex(p.position, r, g, b, 1.0f);
             }
-        }
+        }*/
 
         syncBuffers();
 
@@ -295,12 +301,11 @@ void Visualize() {
         camera.Inputs(window);
         camera.Matrix(WINDOW_WIDTH, WINDOW_HEIGHT, SCENE_DEPTH, shader);
 
-        glPointSize(15); // Set the point size
-        glEnable(GL_DEPTH_TEST); // Enable depth test
+        glPointSize(SPACING / 1.25);
+        glEnable(GL_DEPTH_TEST);
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
-        glDisable(GL_DEPTH_TEST); // Disable depth test
+        glDisable(GL_DEPTH_TEST);
 
-        //set fixed position for imgui window
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
 
