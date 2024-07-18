@@ -32,7 +32,6 @@ struct Parameters {
 
 	double spacing;
 	double support;
-	double cellSize;
 
 	double restDensity;
 	double timeStep;

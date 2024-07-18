@@ -3,33 +3,43 @@
 #include <list>
 #include <numeric>
 
-struct GridCell {
-    Eigen::Vector3i cellNumber;
-    Eigen::Vector3d minBounds;
-    Eigen::Vector3d maxBounds;
-    std::vector<Particle*> cellParticles;
-};
-
 struct GridCell2D {
 	Eigen::Vector2i cellNumber;
-	Eigen::Vector2d minBounds;
-	Eigen::Vector2d maxBounds;
 	std::vector<Particle2D*> cellParticles;
 };
 
-// Particle container
-extern std::vector<Particle> particles;
-extern std::vector<Particle2D> particles2D;
-extern std::vector<Particle> ghostParticles;
+struct GridCell {
+	Eigen::Vector3i cellNumber;
+	std::vector<Particle*> cellParticles;
+};
 
-extern std::vector<GridCell> grid;
-extern std::vector<GridCell2D> grid2D;
-extern std::vector<std::list<Particle*>> linearGrid;
-extern std::vector<size_t> particleIndices;
+class Grid2D {
+protected:
+	int gridWidth;
+	int gridHeight;
+	double cellSize;
+	std::vector<GridCell2D> cells2D;
 
-extern int GRID_WIDTH;
-extern int GRID_HEIGHT;
-extern int GRID_DEPTH;
+public:
+	Grid2D(double size);
+
+	void virtual initializeGrid();
+	void virtual updateGrid();
+	void neighborSearch(std::vector<Particle2D>& particles);
+};
+
+class Grid : public Grid2D {
+protected:
+	int gridDepth;
+	std::vector<GridCell> cells;
+
+public:
+	Grid(double size);
+
+	void initializeGrid() override;
+	void updateGrid() override;
+	void neighborSearch(std::vector<Particle>& particles);
+};
 
 void InitFluid();
 void InitGhostFluid();
@@ -45,8 +55,3 @@ void InitBoundaries2D();
 void InitMovingThroughBoundaries2D();
 void MovingBoundary2D();
 void RotatingBoundary2D();
-
-void UniformGrid();
-void UniformGrid2D();
-void GridUpdate();
-void GridUpdate2D();

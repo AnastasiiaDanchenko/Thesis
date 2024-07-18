@@ -20,7 +20,6 @@ public:
     std::vector<Particle*> neighbors;
 
     Particle();
-    Eigen::Vector3i getCellNumber();
 
     // IISPH
     Eigen::Vector3d predictedVelocity;
@@ -48,16 +47,14 @@ public:
     std::vector<Particle2D*> neighbors;
 
     Particle2D();
-    Eigen::Vector2i getCellNumber();
 
     // IISPH
     Eigen::Vector2d predictedVelocity;
     double sourceTerm;
     double diagonal;
     Eigen::Vector2d pressureAcceleration;
-    Eigen::Vector2d dii;
-    double aii;
-    double predictedDensity;
-    double predictedPressure;
-    Eigen::Vector2d ci;
 };
+
+extern std::vector<Particle> particles;
+extern std::vector<Particle2D> particles2D;
+extern std::vector<Particle> ghostParticles;

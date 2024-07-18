@@ -40,7 +40,6 @@ void Parameters::readParameters() {
 
         if (dim_data.contains("spacing")) {
             spacing = dim_data["spacing"].get<double>();
-            cellSize = 2 * spacing;
             support *= spacing;
         }
 

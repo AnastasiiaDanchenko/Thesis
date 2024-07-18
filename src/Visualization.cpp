@@ -235,10 +235,12 @@ void Visualize() {
         parameters.windowSize.depth / 2 - parameters.spacing / 2
     );
 
+    Grid grid(parameters.spacing * 2);
+
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH();
+            SimulationIISPH(grid);
         }
 
         clearBuffers();
@@ -363,7 +365,7 @@ void Visualize() {
             particles.clear();
             Initialization();
         }
-        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(); }
+        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(grid); }
         if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
         ImGui::End();
 
@@ -503,11 +505,13 @@ void Visualize2D() {
     std::string path = "output/" + std::to_string(parameters.particlesPerDimension.x * parameters.particlesPerDimension.y) + "_" + std::to_string(ERR_THRESHOLD);
     std::filesystem::create_directories(path);*/
 
+    Grid2D grid2D(parameters.spacing * 2);
+
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            if (simulationType == 2) RotatingBoundaryIISPH2D();
-			else SimulationIISPH2D();
+            if (simulationType == 2) RotatingBoundaryIISPH2D(grid2D);
+			else SimulationIISPH2D(grid2D);
         }
 
         clearBuffers();
@@ -521,20 +525,20 @@ void Visualize2D() {
 
         for (auto& p : particles2D) {
             if (p.isFluid) {
-                double speed = magnitude2D(p.velocity);
+                /*double speed = magnitude2D(p.velocity);
                 double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                pushVertex2D(p.position.x(), p.position.y(), r, g, b);
+                pushVertex2D(p.position.x(), p.position.y(), r, g, b);*/
 
-                /*bool isNeighbor = false;
+                bool isNeighbor = false;
                 for (auto& n : p.neighbors) {
                     if (n == &particles2D[parameters.visualizeNeighbors]) { isNeighbor = true; break; }
                 }
                 if (p.ID == parameters.visualizeNeighbors) { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 1.0f, 0.0f); }
                 else if (isNeighbor) { pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 0.0f); }
-                else { pushVertex2D(p.position.x(), p.position.y(), 0.2f, 0.5f, 1.0f); }*/
+                else { pushVertex2D(p.position.x(), p.position.y(), 0.2f, 0.5f, 1.0f); }
             }
             else {
                 double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
@@ -608,8 +612,8 @@ void Visualize2D() {
             particles2D.clear(); Initialization2D();
         }
         if (ImGui::Button("Move forward one time step")) { 
-            if (simulationType == 2) RotatingBoundaryIISPH2D();
-			else SimulationIISPH2D(); 
+            if (simulationType == 2) RotatingBoundaryIISPH2D(grid2D);
+			else SimulationIISPH2D(grid2D); 
         }
         if (ImGui::Button("Change simulation type")) {
             simulationType = (simulationType + 1) % 3;
@@ -704,10 +708,12 @@ void VisualizeGhosts() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
+	Grid grid(parameters.spacing * 2);
+
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH();
+            SimulationIISPH(grid);
         }
 
         clearBuffers();
@@ -793,7 +799,7 @@ void VisualizeGhosts() {
             Initialization();
         }
         if (ImGui::Button("Move forward one time step")) {
-            SimulationIISPH();
+            SimulationIISPH(grid);
         }
         ImGui::End();
 

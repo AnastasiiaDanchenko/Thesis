@@ -20,14 +20,14 @@ void SEvsPPE() {
         if (method == "SE") {
             parameters.timeStep = 0.000001;
             for (int i = 0; i < steps; i++) {
-                Simulation2D();
+                //Simulation2D();
             }
             //SaveToDisk2D();
         }
         else if (method == "PPE") {
             parameters.timeStep = 0.05;
             for (int i = 0; i < steps; i++) {
-                SimulationIISPH2D();
+                //SimulationIISPH2D(grid2D);
             }
             //SaveToDisk2D();
         }
@@ -42,7 +42,7 @@ void SEvsPPE() {
         std::cout << "Execution time per step: " << duration.count() / steps << "s" << std::endl << std::endl;
 
         particles2D.clear();
-        grid2D.clear();
+		/*grid2D.updateGrid();*/
     }
 }
 

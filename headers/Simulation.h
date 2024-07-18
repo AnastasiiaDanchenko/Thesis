@@ -2,10 +2,6 @@
 #include <chrono>
 
 #include "ComputationsSPH.h"
-#include "NeighborSearch.h"
-//#include "matplotlibcpp.h"
-
-//namespace plt = matplotlibcpp;
 
 void Initialization();
 void Initialization2D();
@@ -13,10 +9,10 @@ void Initialization2D();
 void MovingBoundaryInitialization();
 void RotatingBoundaryInitialization();
 
-void Simulation();
-void SimulationIISPH();
-void Simulation2D();
-void SimulationIISPH2D();
+void Simulation(Grid& grid);
+void SimulationIISPH(Grid& grid);
 
-void MovingBoundaryIISPH2D();
-void RotatingBoundaryIISPH2D();
+void Simulation2D(Grid2D& grid2d);
+void SimulationIISPH2D(Grid2D& grid2d);
+void MovingBoundaryIISPH2D(Grid2D& grid2d);
+void RotatingBoundaryIISPH2D(Grid2D& grid2d);
