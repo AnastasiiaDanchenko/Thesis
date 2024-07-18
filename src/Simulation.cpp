@@ -1,33 +1,30 @@
 #include "..\headers\Simulation.h"
 
-void Simulation(Grid& grid) {
-	grid.updateGrid();
-	grid.neighborSearch(particles);
-    ComputeDensityPressure();
-    ComputeAcceleration();
-    UpdateParticles();
+void Simulation(Solver& solver) {
+	solver.neighborSearch();
+	solver.computeDensityPressure();
+	solver.computeAcceleration();
+	solver.updateParticles();
 }
 
-void SimulationIISPH(Grid& grid) {
-	grid.updateGrid();
-	grid.neighborSearch(particles);
-	BoundaryMassUpdate();
-	ComputeDensity();
-    PredictVelocity();
-    ComputeDensityError();
-    ComputeLaplacian();
-    CompressionConvergence();
-    UpdateParticles();
+void SimulationIISPH(Solver& solver) {
+	solver.neighborSearch();
+	solver.boundaryMassUpdate();
+	solver.computeDensity();
+	solver.predictVelocity();
+	solver.computeDensityError();
+	solver.computeLaplacian();
+	solver.compressionConvergence();
+	solver.updateParticles();
 
-	grid.neighborSearch(ghostParticles);
-	UpdateGhosts();
+	solver.neighborSearchGhosts();
+	solver.updateGhosts();
 }
 
-void Initialization() {
-    InitBoundaries();
-    InitFluid();
-
-	InitGhostFluid();
+void Initialization(Solver& solver) {
+	solver.initBoundaries();
+	solver.initFluid();
+	solver.initGhostFluid();
 }
 
 void Simulation2D(Solver2D& solver) {

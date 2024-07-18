@@ -1,4 +1,4 @@
-#include "..\headers\ComputationsSPH.h"
+#include "..\headers\Solvers.h"
 
 Solver2D::Solver2D() {
 	grid2D = Grid2D(parameters.spacing * 2);
@@ -531,8 +531,81 @@ void Solver2D::moveBoundary() {
     }
 }
 
-// Loop through all particles and compute density
-void ComputeDensityPressure() {
+Solver::Solver() {
+    grid = Grid(parameters.spacing * 2);
+}
+
+void Solver::initBoundaries() {
+    int width = parameters.windowSize.width / parameters.spacing - 1;
+    int hight = parameters.windowSize.height / parameters.spacing - 1;
+    int depth = (parameters.windowSize.depth / parameters.spacing - 1) / 2;
+
+    for (float i = 0; i < width; i += 0.5) {
+        for (float j = 0; j < hight; j += 0.5) {
+            for (float k = 0; k < depth; k += 0.5) {
+                if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1 || k < 0.5 || k > depth - 1) {
+                    Particle p;
+
+                    p.position = Eigen::Vector3d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing, (k + 1) * parameters.spacing);
+                    p.isFluid = false;
+                    p.ID = particles.size();
+                    parameters.boundaryTestID = p.ID;
+
+                    particles.push_back(p);
+                }
+            }
+        }
+    }
+}
+
+void Solver::initFluid() {
+    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
+        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
+            for (int k = 0; k < parameters.particlesPerDimension.z; k++) {
+                Particle p;
+
+                p.position = Eigen::Vector3d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing, (k + 2) * parameters.spacing);
+                p.ID = particles.size();
+                particles.push_back(p);
+            }
+        }
+    }
+}
+
+void Solver::initGhostFluid() {
+    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
+        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
+            Particle p;
+
+            p.position = Eigen::Vector3d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing, parameters.windowSize.depth / 2);
+            ghostParticles.push_back(p);
+        }
+    }
+}
+
+void Solver::initMovingBoundary() {
+    for (int i = -20; i < 0; i++) {
+        for (int j = -1; j < 2; j++) {
+            for (int k = 0; k < (parameters.windowSize.depth / parameters.spacing - 1) / 2; k++) {
+                Particle p;
+
+                p.position = Eigen::Vector3d(i * parameters.spacing, j * parameters.spacing, (k + 1) * parameters.spacing);
+                p.isFluid = false;
+                p.ID = particles.size();
+                p.velocity = Eigen::Vector3d(20, 0.0, 0.0);
+
+                particles.push_back(p);
+            }
+        }
+    }
+}
+
+void Solver::neighborSearch() {
+	grid.updateGrid();
+	grid.neighborSearch(particles);
+}
+
+void Solver::computeDensityPressure(){
     double averageDensity = 0.0f;
     int numFluidParticles = 0;
 
@@ -560,11 +633,11 @@ void ComputeDensityPressure() {
     std::cout << "Average density: " << averageDensity / numFluidParticles << std::endl;
 }
 
-void ComputeAcceleration() {
+void Solver::computeAcceleration() {
     for (auto& p : particles) {
         if (p.isFluid == false) { // Skip boundary particles
-			continue;
-		}
+            continue;
+        }
 
         // Gravity force
         Eigen::Vector3d acceleration = parameters.gravity;
@@ -576,21 +649,20 @@ void ComputeAcceleration() {
             const Eigen::Vector3d kernel = CubicSplineKernelGradient(r);
 
             // Pressure force
-            acceleration -= neighbor->mass * (p.pressure / pow(p.density, 2) + neighbor->pressure / 
-            pow(neighbor->density, 2)) * kernel;
+            acceleration -= neighbor->mass * (p.pressure / pow(p.density, 2) + neighbor->pressure /
+                pow(neighbor->density, 2)) * kernel;
 
             // Viscosity force
             const Eigen::Vector3d v = p.velocity - neighbor->velocity;
-            acceleration += 2 * parameters.viscosity * neighbor->mass * v / neighbor->density * r.dot(kernel) / 
-            (rSquaredNorm + 0.01f * pow(parameters.spacing, 2));
+            acceleration += 2 * parameters.viscosity * neighbor->mass * v / neighbor->density * r.dot(kernel) /
+                (rSquaredNorm + 0.01f * pow(parameters.spacing, 2));
         }
 
         p.acceleration = acceleration;
     }
 }
 
-// Euler integration
-void UpdateParticles() {
+void Solver::updateParticles() {
     double maxVelocity = 0.0;
 
 #pragma omp parallel for
@@ -604,18 +676,17 @@ void UpdateParticles() {
         maxVelocity = std::max(maxVelocity, p.velocity.norm());
 
         // Delete particles that are out of bounds
-        if (p.position.x() < - parameters.windowSize.width || p.position.x() > parameters.windowSize.width  * 2 || 
+        if (p.position.x() < -parameters.windowSize.width || p.position.x() > parameters.windowSize.width * 2 ||
             p.position.y() < -parameters.windowSize.height || p.position.y() > parameters.windowSize.height * 2) {
-			particles.erase(particles.begin() + i);
-		}
+            particles.erase(particles.begin() + i);
+        }
     }
 
-    parameters.timeStep = (maxVelocity < std::numeric_limits<double>::epsilon()) ? parameters.maxTimeStep : 
+    parameters.timeStep = (maxVelocity < std::numeric_limits<double>::epsilon()) ? parameters.maxTimeStep :
         std::min(parameters.maxTimeStep, 0.4 * parameters.spacing / maxVelocity);
 }
 
-// IISPH density computation
-void ComputeDensity() {
+void Solver::computeDensity() {
     double avgDensity = 0.0;
 
 #pragma omp parallel for reduction(+:avgDensity)
@@ -634,8 +705,8 @@ void ComputeDensity() {
         avgDensity += density;
     }
 
-    parameters.avgDensity = avgDensity / (parameters.particlesPerDimension.x * parameters.particlesPerDimension.y * 
-    parameters.particlesPerDimension.z);
+    parameters.avgDensity = avgDensity / (parameters.particlesPerDimension.x * parameters.particlesPerDimension.y *
+        parameters.particlesPerDimension.z);
 }
 
 Eigen::Vector3d ViscosityAcceleration(Particle* p) {
@@ -655,8 +726,7 @@ Eigen::Vector3d ViscosityAcceleration(Particle* p) {
     return acceleration;
 }
 
-// IISPH non-pressure acceleration computation and velocity prediction
-void PredictVelocity() {
+void Solver::predictVelocity() {
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -667,8 +737,7 @@ void PredictVelocity() {
     }
 }
 
-// IISPH current density error computation - source term
-void ComputeDensityError() {
+void Solver::computeDensityError() {
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -677,13 +746,13 @@ void ComputeDensityError() {
         double sourceTerm = parameters.restDensity - p.density;
         for (auto neighbor : p.neighbors) {
             if (neighbor->isFluid) {
-                sourceTerm -= parameters.timeStep * neighbor->mass * 
-                (p.predictedVelocity - neighbor->predictedVelocity).
-                dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                sourceTerm -= parameters.timeStep * neighbor->mass *
+                    (p.predictedVelocity - neighbor->predictedVelocity).
+                    dot(CubicSplineKernelGradient(p.position - neighbor->position));
             }
             else {
-                sourceTerm -= parameters.timeStep * neighbor->mass * 
-                p.predictedVelocity.dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                sourceTerm -= parameters.timeStep * neighbor->mass *
+                    p.predictedVelocity.dot(CubicSplineKernelGradient(p.position - neighbor->position));
             }
         }
 
@@ -691,8 +760,7 @@ void ComputeDensityError() {
     }
 }
 
-// IISPH diagonal value computation
-void ComputeLaplacian() {
+void Solver::computeLaplacian() {
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -703,24 +771,24 @@ void ComputeLaplacian() {
 
         for (auto neighbor : p.neighbors) {
             if (neighbor->isFluid) {
-                coefficient -= neighbor->mass / pow(parameters.restDensity, 2) * 
-                CubicSplineKernelGradient(p.position - neighbor->position);
+                coefficient -= neighbor->mass / pow(parameters.restDensity, 2) *
+                    CubicSplineKernelGradient(p.position - neighbor->position);
             }
             else {
-                coefficient -= 2 * parameters.gamma * neighbor->mass / pow(parameters.restDensity, 2) * 
-                CubicSplineKernelGradient(p.position - neighbor->position);
+                coefficient -= 2 * parameters.gamma * neighbor->mass / pow(parameters.restDensity, 2) *
+                    CubicSplineKernelGradient(p.position - neighbor->position);
             }
         }
 
         for (auto neighbor : p.neighbors) {
             if (neighbor->isFluid) {
                 diagonal += neighbor->mass * (coefficient + p.mass / pow(parameters.restDensity, 2) *
-                CubicSplineKernelGradient(neighbor->position - p.position)).
-                dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                    CubicSplineKernelGradient(neighbor->position - p.position)).
+                    dot(CubicSplineKernelGradient(p.position - neighbor->position));
             }
             else {
-                diagonal += neighbor->mass * 
-                coefficient.dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                diagonal += neighbor->mass *
+                    coefficient.dot(CubicSplineKernelGradient(p.position - neighbor->position));
             }
         }
 
@@ -736,13 +804,12 @@ void ComputeLaplacian() {
     }
 }
 
-// IISPH compression convergence
-void CompressionConvergence() {
+void Solver::compressionConvergence() {
     double densityError = parameters.restDensity;
     parameters.nbIterations = 0;
     parameters.firstErr = 0.0;
 
-    while ((parameters.densityErr > parameters.errThreshold * parameters.restDensity || parameters.nbIterations < 2) 
+    while ((parameters.densityErr > parameters.errThreshold * parameters.restDensity || parameters.nbIterations < 2)
         && parameters.nbIterations < 100) {
         densityError = 0.0;
 
@@ -755,13 +822,13 @@ void CompressionConvergence() {
             Eigen::Vector3d acceleration = Eigen::Vector3d::Zero();
             for (auto neighbor : p.neighbors) {
                 if (neighbor->isFluid) {
-                    acceleration -= neighbor->mass * (p.pressure / pow(parameters.restDensity, 2) + 
-                    neighbor->pressure / pow(parameters.restDensity, 2)) *
-                    CubicSplineKernelGradient(p.position - neighbor->position);
+                    acceleration -= neighbor->mass * (p.pressure / pow(parameters.restDensity, 2) +
+                        neighbor->pressure / pow(parameters.restDensity, 2)) *
+                        CubicSplineKernelGradient(p.position - neighbor->position);
                 }
                 else {
-                    acceleration -= 2 * parameters.gamma * neighbor->mass * p.pressure / 
-                    pow(parameters.restDensity, 2) * CubicSplineKernelGradient(p.position - neighbor->position);
+                    acceleration -= 2 * parameters.gamma * neighbor->mass * p.pressure /
+                        pow(parameters.restDensity, 2) * CubicSplineKernelGradient(p.position - neighbor->position);
                 }
             }
 
@@ -778,19 +845,19 @@ void CompressionConvergence() {
             for (auto neighbor : p.neighbors) {
                 if (neighbor->isFluid) {
                     divergenceVel += neighbor->mass * (p.pressureAcceleration - neighbor->pressureAcceleration).
-                    dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                        dot(CubicSplineKernelGradient(p.position - neighbor->position));
                 }
                 else {
-                    divergenceVel += neighbor->mass * 
-                    p.pressureAcceleration.dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                    divergenceVel += neighbor->mass *
+                        p.pressureAcceleration.dot(CubicSplineKernelGradient(p.position - neighbor->position));
                 }
             }
 
             divergenceVel *= pow(parameters.timeStep, 2);
 
             if (abs(p.diagonal) >= 1e-6) {
-                p.pressure = std::max(0.0, 
-                p.pressure + parameters.omega * (p.sourceTerm - divergenceVel) / p.diagonal);
+                p.pressure = std::max(0.0,
+                    p.pressure + parameters.omega * (p.sourceTerm - divergenceVel) / p.diagonal);
             }
             else {
                 p.pressure = 0.0;
@@ -799,7 +866,7 @@ void CompressionConvergence() {
             densityError += divergenceVel - p.sourceTerm;
         }
 
-        densityError /= (parameters.particlesPerDimension.x * parameters.particlesPerDimension.y * 
+        densityError /= (parameters.particlesPerDimension.x * parameters.particlesPerDimension.y *
             parameters.particlesPerDimension.z);
         parameters.densityErr = densityError;
 
@@ -811,7 +878,7 @@ void CompressionConvergence() {
     }
 }
 
-void BoundaryMassUpdate() {
+void Solver::boundaryMassUpdate() {
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -827,7 +894,11 @@ void BoundaryMassUpdate() {
     }
 }
 
-void UpdateGhosts() {
+void Solver::neighborSearchGhosts() {
+	grid.neighborSearch(ghostParticles);
+}
+
+void Solver::updateGhosts() {
 #pragma omp parallel for
     for (int i = 0; i < ghostParticles.size(); i++) {
 		Particle& g = ghostParticles[i];

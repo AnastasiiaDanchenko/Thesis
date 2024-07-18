@@ -35,18 +35,10 @@ protected:
 	std::vector<GridCell> cells;
 
 public:
+	Grid();
 	Grid(double size);
 
 	void initializeGrid() override;
 	void updateGrid() override;
 	void neighborSearch(std::vector<Particle>& particles);
 };
-
-void InitFluid();
-void InitGhostFluid();
-
-void InitBoundaries();
-void MovingBoundary();
-
-void InitFluidForRotatingTest2D();
-

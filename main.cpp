@@ -57,8 +57,9 @@ int main() {
         //SEvsPPE();
     }
     else if (parameters.dimensions == 3) {
-        Initialization();
-        Visualize();
+		Solver solver;
+        Initialization(solver);
+        Visualize(solver);
         //VisualizeGhosts();
 	}
 

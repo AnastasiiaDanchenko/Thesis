@@ -163,7 +163,7 @@ void clearBuffers() {
     verticesCount = 0;
 }
 
-void Visualize() {
+void Visualize(Solver& solver) {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -240,7 +240,7 @@ void Visualize() {
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH(grid);
+            SimulationIISPH(solver);
         }
 
         clearBuffers();
@@ -363,10 +363,10 @@ void Visualize() {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
             particles.clear();
-            Initialization();
+            Initialization(solver);
         }
-        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(grid); }
-        if (ImGui::Button("Start moving boundary")) { MovingBoundary(); }
+        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(solver); }
+        if (ImGui::Button("Start moving boundary")) { solver.initMovingBoundary(); }
         ImGui::End();
 
         ImGui::Render();
@@ -655,7 +655,7 @@ void Visualize2D(Solver2D& solver) {
     glfwTerminate();
 }
 
-void VisualizeGhosts() {
+void VisualizeGhosts(Solver& solver) {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -708,12 +708,10 @@ void VisualizeGhosts() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-	Grid grid(parameters.spacing * 2);
-
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH(grid);
+            SimulationIISPH(solver);
         }
 
         clearBuffers();
@@ -796,10 +794,10 @@ void VisualizeGhosts() {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
             particles.clear();
-            Initialization();
+            Initialization(solver);
         }
         if (ImGui::Button("Move forward one time step")) {
-            SimulationIISPH(grid);
+            SimulationIISPH(solver);
         }
         ImGui::End();
 

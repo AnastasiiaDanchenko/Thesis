@@ -18,6 +18,6 @@ void InitializeVBO();
 void UpdateVBO();
 void VisualizationVBO();
 
-void Visualize();
+void Visualize(Solver& solver);
 void Visualize2D(Solver2D& solver);
-void VisualizeGhosts();
+void VisualizeGhosts(Solver& solver);

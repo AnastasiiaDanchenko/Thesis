@@ -27,9 +27,9 @@ public:
 	void virtual computeDensityError();
 	void virtual computeLaplacian();
 	void virtual compressionConvergence();
-	void virtual advectParticles();
+	void advectParticles();
 
-	void initMovingBoundary();
+	void virtual initMovingBoundary();
 	void initMovingFluid();
 	void moveBoundary();
 
@@ -38,20 +38,32 @@ public:
 };
 
 class Solver : public Solver2D {
+private:
+	Grid grid;
 
+public:
+	Solver();
+
+	void initBoundaries() override;
+	void initFluid() override;
+	void neighborSearch() override;
+
+	// SPH functions
+	void computeDensityPressure() override;
+	void computeAcceleration() override;
+	void updateParticles() override;
+
+	// IISPH functions
+	void boundaryMassUpdate() override;
+	void computeDensity() override;
+	void predictVelocity() override;
+	void computeDensityError() override;
+	void computeLaplacian() override;
+	void compressionConvergence() override;
+
+	void initMovingBoundary() override;
+
+	void initGhostFluid();
+	void neighborSearchGhosts();
+	void updateGhosts();
 };
-
-void ComputeDensityPressure();
-void ComputeAcceleration();
-void UpdateParticles();
-
-// IISPH functions
-void ComputeDensity();
-void PredictVelocity();
-void ComputeDensityError();
-void ComputeLaplacian();
-void CompressionConvergence();
-
-void BoundaryMassUpdate();
-
-void UpdateGhosts();

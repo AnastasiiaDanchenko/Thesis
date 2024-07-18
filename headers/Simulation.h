@@ -1,16 +1,16 @@
 #pragma once
 #include <chrono>
 
-#include "ComputationsSPH.h"
+#include "Solvers.h"
 
-void Initialization();
+void Initialization(Solver& solver);
 void Initialization2D(Solver2D& solver);
 
 void MovingBoundaryInitialization(Solver2D& solver);
 void RotatingBoundaryInitialization(Solver2D& solver);
 
-void Simulation(Grid& grid);
-void SimulationIISPH(Grid& grid);
+void Simulation(Solver& solver);
+void SimulationIISPH(Solver& solver);
 
 void Simulation2D(Solver2D& solver);
 void SimulationIISPH2D(Solver2D& solver);
