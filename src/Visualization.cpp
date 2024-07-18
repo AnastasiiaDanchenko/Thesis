@@ -604,7 +604,7 @@ void Visualize2D(Solver2D& solver) {
         if (ImGui::Button("Reset")) { 
             particles2D.clear(); 
             if (simulationType == 0) Initialization2D(solver);
-            else if (simulationType == 1) MovingBoundaryInitialization();
+            else if (simulationType == 1) MovingBoundaryInitialization(solver);
             else if (simulationType == 2) RotatingBoundaryInitialization(solver);
         }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
@@ -622,14 +622,14 @@ void Visualize2D(Solver2D& solver) {
                 parameters.particlesPerDimension.x *= 2;
                 Initialization2D(solver);
             }
-			else if (simulationType == 1) MovingBoundaryInitialization();
+			else if (simulationType == 1) MovingBoundaryInitialization(solver);
             else if (simulationType == 2) {
                 parameters.particlesPerDimension.x /= 2;
                 RotatingBoundaryInitialization(solver);
             }
         }
         if (simulationType == 1) {
-            if (ImGui::Button("Start moving boundary")) { MovingBoundary2D(); }
+            if (ImGui::Button("Start moving boundary")) { solver.moveBoundary(); }
         }
         ImGui::End();
 

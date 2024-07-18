@@ -6,7 +6,7 @@
 void Initialization();
 void Initialization2D(Solver2D& solver);
 
-void MovingBoundaryInitialization();
+void MovingBoundaryInitialization(Solver2D& solver);
 void RotatingBoundaryInitialization(Solver2D& solver);
 
 void Simulation(Grid& grid);

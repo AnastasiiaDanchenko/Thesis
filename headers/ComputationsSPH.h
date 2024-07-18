@@ -28,6 +28,13 @@ public:
 	void virtual computeLaplacian();
 	void virtual compressionConvergence();
 	void virtual advectParticles();
+
+	void initMovingBoundary();
+	void initMovingFluid();
+	void moveBoundary();
+
+	void initRotatingBoundary();
+	void rotateBoundary();
 };
 
 class Solver : public Solver2D {
@@ -46,7 +53,5 @@ void ComputeLaplacian();
 void CompressionConvergence();
 
 void BoundaryMassUpdate();
-
-void RotateBoundary2D();
 
 void UpdateGhosts();

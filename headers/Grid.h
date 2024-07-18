@@ -48,9 +48,5 @@ void InitGhostFluid();
 void InitBoundaries();
 void MovingBoundary();
 
-void InitFluidForBoundaryTest2D();
 void InitFluidForRotatingTest2D();
 
-void InitMovingThroughBoundaries2D();
-void MovingBoundary2D();
-void RotatingBoundary2D();

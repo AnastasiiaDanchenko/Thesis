@@ -42,14 +42,14 @@ void Initialization2D(Solver2D& solver) {
 	solver.initFluid();
 }
 
-void MovingBoundaryInitialization() {
-	InitMovingThroughBoundaries2D();
-	InitFluidForBoundaryTest2D();
+void MovingBoundaryInitialization(Solver2D& solver) {
+	solver.initMovingBoundary();
+	solver.initMovingFluid();
 }
 
 void RotatingBoundaryInitialization(Solver2D& solver) {
 	solver.initBoundaries();
-	RotatingBoundary2D();
+	solver.initRotatingBoundary();
 	solver.initFluid();
 }
 
@@ -62,8 +62,7 @@ void RotatingBoundaryIISPH2D(Solver2D& solver) {
 	solver.computeDensityError();
 	solver.computeLaplacian();
 	solver.compressionConvergence();
-
-	RotateBoundary2D();
+	solver.rotateBoundary();
 }
 
 void SimulationIISPH2D(Solver2D& solver) {
