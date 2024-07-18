@@ -12,48 +12,54 @@ const std::string fileName = "parameters.json";
 #define M_PI 3.14159265358979323846
 #endif
 
-// Window parameters
-extern int WINDOW_WIDTH;
-extern int WINDOW_HEIGHT;
-extern int SCENE_DEPTH;
-extern int PARTICLE_NEIGHBORS; // Visualized neighbors for a given particle
+struct WindowSize {
+	int width;
+	int height;
+	int depth;
+};
 
-// Initial grid parameters
-extern int PARTICLES_PER_DIMENSION;
-extern int PARTICLES_X;
-extern int PARTICLES_Y;
-extern int PARTICLES_Z;
-extern double SPACING;
-extern double CELL_SIZE;
+struct ParticlesPerDimension {
+	int x;
+	int y;
+	int z;
+};
 
-// SPH parameters
-extern double SUPPORT;
-extern double REST_DENSITY;
-extern double TIME_STEP;
-extern double STIFFNESS;
-extern double VISCOSITY;
-extern double COHESION;
-extern Eigen::Vector3d GRAVITY;
-extern Eigen::Vector2d GRAVITY2D;
-extern double MAX_TIME_STEP;
-extern int ITERATIONS_COUNT;
+struct Parameters {
+	WindowSize windowSize;
+	int dimensions;
+	int visualizeNeighbors;
+	ParticlesPerDimension particlesPerDimension;
 
-// IISPH parameters
-extern double GAMMA;
-extern double OMEGA;
-extern double AVG_DENSITY;
-extern double DENSITY_ERR;
-extern double FIRST_ERR;
-extern double ERR_THRESHOLD;
-extern int NB_ITERATIONS;
+	double spacing;
+	double support;
+	double cellSize;
 
-extern std::string NS_METHOD;
-extern std::string SIMULATION;
-extern bool VISUALIZATION;
-extern bool SURFACE_TENSION;
-extern int DIMENSIONS;
-extern bool FIRST_STEP;
-extern double FIRST_STEP_CORRECTION;
-extern int BOUNDARY_TEST_ID;
+	double restDensity;
+	double timeStep;
+	double stiffness;
+	double viscosity;
+	
+	bool surfaceTension;
+	double cohesion;
 
-void readParameters();
+	double maxTimeStep;
+	int iterationsCount;
+
+	Eigen::Vector3d gravity;
+	Eigen::Vector2d gravity2D;
+
+	double gamma;
+	double omega;
+	double avgDensity;
+	double densityErr;
+	double firstErr;
+	double errThreshold;
+	int nbIterations;
+
+	int boundaryTestID;
+
+	Parameters();
+	void readParameters();
+};
+
+extern Parameters parameters;

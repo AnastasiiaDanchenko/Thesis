@@ -8,7 +8,7 @@ void QuadraticSearch() {
         for (int j = 0; j < particles.size(); j++) {
             double distance = std::sqrt((particles[j].position - particles[i].position).squaredNorm());  
 
-            if (distance < SUPPORT) {
+            if (distance < parameters.support) {
                 particles[i].neighbors.push_back(&particles[j]);
             }
         }
@@ -33,7 +33,7 @@ void NSUniformGrid() {
                     for (auto& p : grid[j + k * GRID_WIDTH + l * GRID_WIDTH * GRID_HEIGHT].cellParticles) {
                         double distance = std::sqrt((p->position - particles[i].position).squaredNorm());
 
-                        if (distance < SUPPORT) {
+                        if (distance < parameters.support) {
 							particles[i].neighbors.push_back(p);
 						}
                     }
@@ -60,7 +60,7 @@ void NSghostsGrid() {
                     for (auto& p : grid[j + k * GRID_WIDTH + l * GRID_WIDTH * GRID_HEIGHT].cellParticles) {
 						double distance = std::sqrt((p->position - ghostParticles[i].position).squaredNorm());
 
-                        if (distance < SUPPORT) {
+                        if (distance < parameters.support) {
 							ghostParticles[i].neighbors.push_back(p);
 						}
 					}
@@ -85,7 +85,7 @@ void NSUniformGrid2D() {
                 for (auto& p : grid2D[j + k * GRID_WIDTH].cellParticles) {
 					double distance = std::sqrt((p->position - particles2D[i].position).squaredNorm());
 
-                    if (distance < SUPPORT) {
+                    if (distance < parameters.support) {
 						particles2D[i].neighbors.push_back(p);
 					}
 				}

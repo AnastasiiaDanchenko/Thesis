@@ -5,8 +5,8 @@ Particle::Particle() :
     velocity(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
     acceleration(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
 
-    mass(SPACING * SPACING * SPACING * REST_DENSITY),
-    density(REST_DENSITY),
+    mass(parameters.spacing * parameters.spacing * parameters.spacing * parameters.restDensity),
+    density(parameters.restDensity),
     pressure(0.0f),
     isFluid(true),
     ID(0),
@@ -16,9 +16,9 @@ Particle::Particle() :
     pressureAcceleration(Eigen::Vector3d(0.0f, 0.0f, 0.0f)) {}
 
 Eigen::Vector3i Particle::getCellNumber() {
-	int x = std::floor(position.x() / CELL_SIZE);
-	int y = std::floor(position.y() / CELL_SIZE);
-    int z = std::floor(position.z() / CELL_SIZE);
+	int x = std::floor(position.x() / parameters.cellSize);
+	int y = std::floor(position.y() / parameters.cellSize);
+    int z = std::floor(position.z() / parameters.cellSize);
 	return Eigen::Vector3i(x, y, z);
 }
 
@@ -28,8 +28,8 @@ Particle2D::Particle2D() :
 	acceleration(Eigen::Vector2d(0.0, 0.0)),
 	normal(Eigen::Vector2d(0.0, 0.0)),
 
-	mass(SPACING * SPACING * REST_DENSITY),
-	density(REST_DENSITY),
+	mass(parameters.spacing * parameters.spacing * parameters.restDensity),
+	density(parameters.restDensity),
 	pressure(0.0),
 	isFluid(true),
 	isSurface(false),
@@ -45,7 +45,7 @@ Particle2D::Particle2D() :
 	ci(Eigen::Vector2d(0.0f, 0.0f)) {}
 
 Eigen::Vector2i Particle2D::getCellNumber() {
-	int x = std::floor(position.x() / CELL_SIZE);
-	int y = std::floor(position.y() / CELL_SIZE);
+	int x = std::floor(position.x() / parameters.cellSize);
+	int y = std::floor(position.y() / parameters.cellSize);
 	return Eigen::Vector2i(x, y);
 }

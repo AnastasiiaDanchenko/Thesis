@@ -13,12 +13,12 @@ int GRID_DEPTH;
 
 // Initialize uniformed grid of fluid particles
 void InitFluid() {
-    for (int i = 0; i < PARTICLES_X; i++) {
-        for (int j = 0; j < PARTICLES_Y; j++) {
-            for (int k = 0; k < PARTICLES_Z; k++) {
+    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
+        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
+            for (int k = 0; k < parameters.particlesPerDimension.z; k++) {
                 Particle p;
 
-                p.position = Eigen::Vector3d((i + 2) * SPACING, (j + 2) * SPACING, (k + 2) * SPACING);
+                p.position = Eigen::Vector3d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing, (k + 2) * parameters.spacing);
 				p.ID = particles.size();
                 particles.push_back(p);
             }
@@ -27,11 +27,11 @@ void InitFluid() {
 }
 
 void InitGhostFluid() {
-    for (int i = 0; i < PARTICLES_X; i++) {
-        for (int j = 0; j < PARTICLES_Y; j++) {
+    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
+        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
             Particle p;
 
-            p.position = Eigen::Vector3d((i + 2) * SPACING, (j + 2) * SPACING, SCENE_DEPTH / 2);
+            p.position = Eigen::Vector3d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing, parameters.windowSize.depth / 2);
             ghostParticles.push_back(p);
         }
     }
@@ -39,9 +39,9 @@ void InitGhostFluid() {
 
 // Initialize boundaries
 void InitBoundaries() {
-    int width = WINDOW_WIDTH / SPACING - 1;
-    int hight = WINDOW_HEIGHT / SPACING - 1;
-    int depth = (SCENE_DEPTH / SPACING - 1) / 2;
+    int width = parameters.windowSize.width / parameters.spacing - 1;
+    int hight = parameters.windowSize.height / parameters.spacing - 1;
+    int depth = (parameters.windowSize.depth / parameters.spacing - 1) / 2;
 
     for (float i = 0; i < width; i += 0.5) {
         for (float j = 0; j < hight; j += 0.5) {
@@ -49,10 +49,10 @@ void InitBoundaries() {
                 if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1 || k < 0.5 || k > depth - 1) {
                     Particle p;
 
-                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
+                    p.position = Eigen::Vector3d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing, (k + 1) * parameters.spacing);
                     p.isFluid = false;
                     p.ID = particles.size();
-                    BOUNDARY_TEST_ID = p.ID;
+                    parameters.boundaryTestID = p.ID;
 
                     particles.push_back(p);
                 }
@@ -66,7 +66,7 @@ void InitBoundaries() {
                 if (i < 1 || i > width - 2 || j < 1 || j > hight - 2 || k < 1 || k > depth - 2) {
                     Particle p;
 
-                    p.position = Eigen::Vector3d((i + 1) * SPACING, (j + 1) * SPACING, (k + 1) * SPACING);
+                    p.position = Eigen::Vector3d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing, (k + 1) * parameters.spacing);
                     p.isFluid = false;
                     p.ID = particles.size();
                     particles.push_back(p);
@@ -77,9 +77,9 @@ void InitBoundaries() {
 }
 
 void UniformGrid() {
-    GRID_WIDTH = std::ceil(WINDOW_WIDTH / CELL_SIZE);
-    GRID_HEIGHT = std::ceil(WINDOW_HEIGHT / CELL_SIZE);
-    GRID_DEPTH = std::ceil(SCENE_DEPTH / CELL_SIZE);
+    GRID_WIDTH = std::ceil(parameters.windowSize.width / parameters.cellSize);
+    GRID_HEIGHT = std::ceil(parameters.windowSize.height / parameters.cellSize);
+    GRID_DEPTH = std::ceil(parameters.windowSize.depth / parameters.cellSize);
 
     std::cout << "Using uniform grid with " << GRID_WIDTH  << "x" 
                                             << GRID_HEIGHT << "x" 
@@ -109,10 +109,10 @@ void GridUpdate() {
 void MovingBoundary() {
     for (int i = -20; i < 0; i++) {
         for (int j = -1; j < 2; j++) {
-            for (int k = 0; k < (SCENE_DEPTH / SPACING - 1) / 2; k++) {
+            for (int k = 0; k < (parameters.windowSize.depth / parameters.spacing - 1) / 2; k++) {
 				Particle p;
 
-				p.position = Eigen::Vector3d(i * SPACING, j * SPACING, (k + 1) * SPACING);
+				p.position = Eigen::Vector3d(i * parameters.spacing, j * parameters.spacing, (k + 1) * parameters.spacing);
 				p.isFluid = false;
 				p.ID = particles.size();
 				p.velocity = Eigen::Vector3d(20, 0.0, 0.0);
@@ -124,18 +124,18 @@ void MovingBoundary() {
 }
 
 void InitFluid2D() {
-    for (int i = 0; i < PARTICLES_X; i++) {
-        for (int j = 0; j < PARTICLES_Y; j++) {
+    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
+        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
 			Particle2D p;
 
             /*if (j % 2 == 0) {
-                p.position = Eigen::Vector2d((i + 2) * SPACING, (j + 2) * SPACING);
+                p.position = Eigen::Vector2d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing);
             }
             else {
-                p.position = Eigen::Vector2d((i + 2.5) * SPACING, (j + 2) * SPACING);
+                p.position = Eigen::Vector2d((i + 2.5) * parameters.spacing, (j + 2) * parameters.spacing);
             }*/
 
-            p.position = Eigen::Vector2d((i + 2) * SPACING, (j + 2) * SPACING);
+            p.position = Eigen::Vector2d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing);
 			p.ID = particles2D.size();
             particles2D.push_back(p);
 		}
@@ -143,8 +143,8 @@ void InitFluid2D() {
 }
 
 void InitBoundaries2D() {
-	int width = (WINDOW_WIDTH / 2) / SPACING - 1;
-	int hight = (WINDOW_HEIGHT / 2) / SPACING - 1;
+	int width = (parameters.windowSize.width / 2) / parameters.spacing - 1;
+	int hight = (parameters.windowSize.height / 2) / parameters.spacing - 1;
 
     for (float i = 0; i < width; i += 0.5) {
         for (float j = 0; j < hight; j += 0.5) {
@@ -152,7 +152,7 @@ void InitBoundaries2D() {
             //if (i < 3 || i > width - 4 || j < 3 || j > hight - 4) {
 				Particle2D p;
 
-				p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+				p.position = Eigen::Vector2d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing);
 				p.isFluid = false;
 				p.ID = particles2D.size();
 
@@ -163,10 +163,10 @@ void InitBoundaries2D() {
 }
 
 void InitFluidForBoundaryTest2D() {
-    for (int i = 0; i < PARTICLES_X; i++) {
-        for (int j = 0; j < PARTICLES_Y; j++) {
+    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
+        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
             Particle2D p;
-            p.position = Eigen::Vector2d((i + 7) * SPACING, (j + 7) * SPACING);
+            p.position = Eigen::Vector2d((i + 7) * parameters.spacing, (j + 7) * parameters.spacing);
             p.ID = particles2D.size();
             particles2D.push_back(p);
         }
@@ -174,15 +174,15 @@ void InitFluidForBoundaryTest2D() {
 }
 
 void InitMovingThroughBoundaries2D() {
-    int width = (WINDOW_WIDTH / 2) / SPACING - 1;
-    int hight = (WINDOW_HEIGHT / 2) / SPACING - 1;
+    int width = (parameters.windowSize.width / 2) / parameters.spacing - 1;
+    int hight = (parameters.windowSize.height / 2) / parameters.spacing - 1;
 
     for (int i = 5; i < width - 5; i++) {
         for (int j = 5; j < hight - 5; j++) {
             if (i < 6 || i > width - 7 || j < 6 || j > hight - 7) {
                 Particle2D p;
 
-                p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+                p.position = Eigen::Vector2d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing);
                 p.isFluid = false;
                 p.ID = particles2D.size();
 
@@ -193,11 +193,11 @@ void InitMovingThroughBoundaries2D() {
 }
 
 void MovingBoundary2D() {
-    for (int i = -((WINDOW_WIDTH / 2) / SPACING - 1) / 2; i < 0; i++) {
+    for (int i = -((parameters.windowSize.width / 2) / parameters.spacing - 1) / 2; i < 0; i++) {
         for (int j = 3; j < 6; j++) {
             Particle2D p;
 
-            p.position = Eigen::Vector2d((i + 1) * SPACING, j * SPACING + WINDOW_HEIGHT / 10);
+            p.position = Eigen::Vector2d((i + 1) * parameters.spacing, j * parameters.spacing + parameters.windowSize.height / 10);
             p.isFluid = false;
             p.ID = particles2D.size();
             p.velocity = Eigen::Vector2d(20, 0.0);
@@ -216,19 +216,19 @@ Eigen::Vector2d rotatePlane(const Eigen::Vector2d& center, const Eigen::Vector2d
 }
 
 void RotatingBoundary2D() {
-    int width_max = WINDOW_WIDTH / SPACING / 5;
-    int width_avg = WINDOW_WIDTH / SPACING / 10;
+    int width_max = parameters.windowSize.width / parameters.spacing / 5;
+    int width_avg = parameters.windowSize.width / parameters.spacing / 10;
 
-    int height_avg = WINDOW_HEIGHT / SPACING / 7;
+    int height_avg = parameters.windowSize.height / parameters.spacing / 7;
 
-    const Eigen::Vector2d center = Eigen::Vector2d((width_max + width_avg) * SPACING, height_avg * SPACING);
+    const Eigen::Vector2d center = Eigen::Vector2d((width_max + width_avg) * parameters.spacing, height_avg * parameters.spacing);
     const double angularVelocity = 0.05;
 
     for (int i = 0; i < width_max; i++) {
         Particle2D p0, p1, p2, p3;
 
         if (i == width_avg) {
-            p0.position = Eigen::Vector2d((i + width_max + 2.5) * SPACING, (height_avg + 1) * SPACING);
+            p0.position = Eigen::Vector2d((i + width_max + 2.5) * parameters.spacing, (height_avg + 1) * parameters.spacing);
             p0.isFluid = false;
             p0.ID = particles2D.size();
 
@@ -252,10 +252,10 @@ void RotatingBoundary2D() {
 
             particles2D.push_back(p3);
 
-            p0.position = Eigen::Vector2d((i + width_max - 2.5) * SPACING, (height_avg - 1) * SPACING);
+            p0.position = Eigen::Vector2d((i + width_max - 2.5) * parameters.spacing, (height_avg - 1) * parameters.spacing);
         }
         else {
-            p0.position = Eigen::Vector2d((i + width_max) * SPACING, height_avg * SPACING);
+            p0.position = Eigen::Vector2d((i + width_max) * parameters.spacing, height_avg * parameters.spacing);
         }
         p0.isFluid = false;
 		p0.ID = particles2D.size();
@@ -281,17 +281,17 @@ void RotatingBoundary2D() {
         particles2D.push_back(p3);
 
         if (i == 0) {
-            BOUNDARY_TEST_ID = p0.ID;
+            parameters.boundaryTestID = p0.ID;
         }
 	}
 }
 
 void InitFluidForRotatingTest2D() {
-    for (int i = 1; i < WINDOW_WIDTH / SPACING / 4; i++) {
-        for (int j = (WINDOW_HEIGHT / SPACING - 1) / 4 + 1; j < (WINDOW_HEIGHT / SPACING - 1) / 4 + 35; j++) {
+    for (int i = 1; i < parameters.windowSize.width / parameters.spacing / 4; i++) {
+        for (int j = (parameters.windowSize.height / parameters.spacing - 1) / 4 + 1; j < (parameters.windowSize.height / parameters.spacing - 1) / 4 + 35; j++) {
             Particle2D p;
 
-            p.position = Eigen::Vector2d((i + 1) * SPACING, (j + 1) * SPACING);
+            p.position = Eigen::Vector2d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing);
             p.ID = particles2D.size();
 
             particles2D.push_back(p);
@@ -300,8 +300,8 @@ void InitFluidForRotatingTest2D() {
 }
 
 void UniformGrid2D() {
-	GRID_WIDTH = std::ceil(WINDOW_WIDTH / CELL_SIZE);
-	GRID_HEIGHT = std::ceil(WINDOW_HEIGHT / CELL_SIZE);
+	GRID_WIDTH = std::ceil(parameters.windowSize.width / parameters.cellSize);
+	GRID_HEIGHT = std::ceil(parameters.windowSize.height / parameters.cellSize);
 
 	std::cout << "Using uniform grid with " << GRID_WIDTH << "x"
 		<< GRID_HEIGHT << " cells" << std::endl;

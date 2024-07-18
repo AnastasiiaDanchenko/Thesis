@@ -18,14 +18,14 @@ void SEvsPPE() {
 
         auto start = std::chrono::high_resolution_clock::now();
         if (method == "SE") {
-            TIME_STEP = 0.000001;
+            parameters.timeStep = 0.000001;
             for (int i = 0; i < steps; i++) {
                 Simulation2D();
             }
             //SaveToDisk2D();
         }
         else if (method == "PPE") {
-            TIME_STEP = 0.05;
+            parameters.timeStep = 0.05;
             for (int i = 0; i < steps; i++) {
                 SimulationIISPH2D();
             }
@@ -35,10 +35,10 @@ void SEvsPPE() {
         std::chrono::duration<double> duration = end - start;
 
         std::cout << "Method: " << method
-                << "\nNumber of particles: " << PARTICLES_X * PARTICLES_Y
-                << "\nTime step: " << TIME_STEP
-                << "\nAverage density by the end of simulation: " << AVG_DENSITY << " kg/m^3"
-                << "\nExecution time total: " << duration.count() << "s" << std::endl;
+			<< "\nNumber of particles: " << parameters.particlesPerDimension.x * parameters.particlesPerDimension.y
+            << "\nTime step: " << parameters.timeStep
+            << "\nAverage density by the end of simulation: " << parameters.avgDensity << " kg/m^3"
+            << "\nExecution time total: " << duration.count() << "s" << std::endl;
         std::cout << "Execution time per step: " << duration.count() / steps << "s" << std::endl << std::endl;
 
         particles2D.clear();
@@ -48,14 +48,14 @@ void SEvsPPE() {
 
 int main() {
     // Read parameters from the input file
-    readParameters();
+    parameters.readParameters();
 
-    if (DIMENSIONS == 2){
+    if (parameters.dimensions == 2){
         Initialization2D();
         Visualize2D();
         //SEvsPPE();
     }
-    else if (DIMENSIONS == 3) {
+    else if (parameters.dimensions == 3) {
         Initialization();
         Visualize();
         //VisualizeGhosts();

@@ -2,7 +2,7 @@
   "dimensions": 3,
   "support": 2.0,
   "density": 1000.0,
-  "visualize neighbors": 5003,
+  "visualize neighbors": 3000,
 
   "2D": {
     "window":  [800, 800],

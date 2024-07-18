@@ -176,7 +176,11 @@ void Visualize() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a window
-    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 3D", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(
+        IMGUI_WINDOW_WIDTH + parameters.windowSize.width, parameters.windowSize.height, 
+        "SPH solver in 3D", nullptr, nullptr
+    );
+
     if (!window) {
         std::cerr << "Failed to create GLFW window!" << std::endl;
         glfwTerminate();
@@ -207,11 +211,11 @@ void Visualize() {
     GLint lightPosLoc = glGetUniformLocation(shader, "lightPosition");
     GLint lightColorLoc = glGetUniformLocation(shader, "lightColor");
 
-    glUniform3f(lightPosLoc, 0.0f, WINDOW_HEIGHT, SCENE_DEPTH);
+    glUniform3f(lightPosLoc, 0.0f, parameters.windowSize.height, parameters.windowSize.depth);
     glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
 
     // Shader inputs were here
-    Camera camera(WINDOW_WIDTH, WINDOW_HEIGHT, SCENE_DEPTH);
+    Camera camera(parameters.windowSize.width, parameters.windowSize.height, parameters.windowSize.depth);
 
     // Initialize the buffers
     initBuffers();
@@ -224,8 +228,12 @@ void Visualize() {
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // boundary box
-    Eigen::Vector3d minBound = Eigen::Vector3d(SPACING, SPACING, SPACING);
-    Eigen::Vector3d maxBound = Eigen::Vector3d(WINDOW_WIDTH - SPACING / 2, WINDOW_HEIGHT - SPACING / 2, SCENE_DEPTH / 2 - SPACING / 2);
+    Eigen::Vector3d minBound = Eigen::Vector3d(parameters.spacing, parameters.spacing, parameters.spacing);
+    Eigen::Vector3d maxBound = Eigen::Vector3d(
+        parameters.windowSize.width     - parameters.spacing / 2, 
+        parameters.windowSize.height    - parameters.spacing / 2,
+        parameters.windowSize.depth / 2 - parameters.spacing / 2
+    );
 
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
@@ -242,7 +250,7 @@ void Visualize() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        glViewport(IMGUI_WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width, parameters.windowSize.height);
 
         // Draw the particles
         for (auto p : particles) {
@@ -273,11 +281,14 @@ void Visualize() {
                     (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
                     (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
                      p.position.x() >= minBound.x() && p.position.x() <= maxBound.x() ||
-                     p.ID >= BOUNDARY_TEST_ID) {
+                     p.ID >= parameters.boundaryTestID) {
 					
-                    double hue = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
-                    double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
-                    double value = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 1.0, 0.6);
+                    double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                        parameters.spacing * parameters.restDensity, 0.0, 30.0);
+                    double saturation = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                        parameters.spacing * parameters.restDensity, 0.0, 1.0);
+                    double value = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                        parameters.spacing * parameters.restDensity, 1.0, 0.6);
                     double r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
@@ -300,46 +311,50 @@ void Visualize() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         camera.Inputs(window);
-        camera.Matrix(WINDOW_WIDTH, WINDOW_HEIGHT, SCENE_DEPTH, shader);
+        camera.Matrix(parameters.windowSize.width, parameters.windowSize.height, parameters.windowSize.depth, shader);
 
-        glPointSize(SPACING / 1.25);
+        glPointSize(parameters.spacing / 1.25);
         glEnable(GL_DEPTH_TEST);
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
         glDisable(GL_DEPTH_TEST);
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height - 100));
 
         ImGui::Begin("Simulation Parameters");
-        ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y * PARTICLES_Z);
+        ImGui::Text("Number of fluid particles: %d", 
+            parameters.particlesPerDimension.x * 
+            parameters.particlesPerDimension.y * 
+            parameters.particlesPerDimension.z
+        );
 
-        float tempTimeStep = static_cast<float>(TIME_STEP);
+        float tempTimeStep = static_cast<float>(parameters.timeStep);
         ImGui::Text("\Time step:");
-        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, MAX_TIME_STEP)) {
-            TIME_STEP = static_cast<double>(tempTimeStep);
+        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, parameters.maxTimeStep)) {
+            parameters.timeStep = static_cast<double>(tempTimeStep);
         }
 
-        float tempGamma = static_cast<float>(GAMMA);
+        float tempGamma = static_cast<float>(parameters.gamma);
         ImGui::Text("\Gamma:");
         if (ImGui::SliderFloat("##Gamma", &tempGamma, 0.01, 1.0)) {
-            GAMMA = static_cast<double>(tempGamma);
+            parameters.gamma = static_cast<double>(tempGamma);
         }
 
-        float tempOmega = static_cast<float>(OMEGA);
+        float tempOmega = static_cast<float>(parameters.omega);
         ImGui::Text("\Omega:");
         if (ImGui::SliderFloat("##Omega", &tempOmega, 0.01, 1.0)) {
-            OMEGA = static_cast<double>(tempOmega);
+            parameters.omega = static_cast<double>(tempOmega);
         }
 
-        ImGui::Text("\Rest Density: %f", REST_DENSITY);
-        ImGui::Text("\Average Density: %f", AVG_DENSITY);
-        ImGui::Text("\Density Error, %%: %f", DENSITY_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Density Error before PPE, %%: %f", FIRST_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
+        ImGui::Text("\Rest Density: %f", parameters.restDensity);
+        ImGui::Text("\Average Density: %f", parameters.avgDensity);
+        ImGui::Text("\Density Error, %%: %f", parameters.densityErr / parameters.restDensity * 100);
+        ImGui::Text("\Density Error before PPE, %%: %f", parameters.firstErr / parameters.restDensity * 100);
+        ImGui::Text("\Number of iterations (l): %d", parameters.nbIterations);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 150));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
+        ImGui::SetNextWindowPos(ImVec2(0, parameters.windowSize.height - 150));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height));
 
         ImGui::Begin("Simulation Controls");
         if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
@@ -440,7 +455,10 @@ void Visualize2D() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a window
-    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 2D", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(
+        IMGUI_WINDOW_WIDTH + parameters.windowSize.width, 
+        parameters.windowSize.height, "SPH solver in 2D", nullptr, nullptr
+    );
     if (!window) {
         std::cerr << "Failed to create GLFW window!" << std::endl;
         glfwTerminate();
@@ -468,7 +486,7 @@ void Visualize2D() {
 
     glUseProgram(shader);
     GLuint resolutionUniform = glGetUniformLocation(shader, "resolution");
-    glUniform2f(resolutionUniform, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glUniform2f(resolutionUniform, parameters.windowSize.width, parameters.windowSize.height);
 
     // Initialize the buffers
     initBuffers2D();
@@ -482,7 +500,7 @@ void Visualize2D() {
 
     //create save directory
     /*int count = 0;
-    std::string path = "output/" + std::to_string(PARTICLES_X * PARTICLES_Y) + "_" + std::to_string(ERR_THRESHOLD);
+    std::string path = "output/" + std::to_string(parameters.particlesPerDimension.x * parameters.particlesPerDimension.y) + "_" + std::to_string(ERR_THRESHOLD);
     std::filesystem::create_directories(path);*/
 
     // event loop
@@ -499,7 +517,7 @@ void Visualize2D() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        glViewport(IMGUI_WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width, parameters.windowSize.height);
 
         for (auto& p : particles2D) {
             if (p.isFluid) {
@@ -509,11 +527,22 @@ void Visualize2D() {
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
                 pushVertex2D(p.position.x(), p.position.y(), r, g, b);
+
+                /*bool isNeighbor = false;
+                for (auto& n : p.neighbors) {
+                    if (n == &particles2D[parameters.visualizeNeighbors]) { isNeighbor = true; break; }
+                }
+                if (p.ID == parameters.visualizeNeighbors) { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 1.0f, 0.0f); }
+                else if (isNeighbor) { pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 0.0f); }
+                else { pushVertex2D(p.position.x(), p.position.y(), 0.2f, 0.5f, 1.0f); }*/
             }
             else {
-                double hue = mapColor(p.mass, 0.0, SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
-                double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
-                double value = mapColor(p.mass, 0.0, SPACING * SPACING * REST_DENSITY, 1.0, 0.6);
+                double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                    parameters.restDensity, 0.0, 30.0);
+                double saturation = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                    parameters.restDensity, 0.0, 1.0);
+                double value = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                    parameters.restDensity, 1.0, 0.6);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
@@ -525,43 +554,45 @@ void Visualize2D() {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glPointSize(SPACING * 2); // Set the point size
+        glPointSize(parameters.spacing * 2); // Set the point size
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
 
         //set fixed position for imgui window
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height - 100));
 
         ImGui::Begin("Simulation Parameters");
-        ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y);
+        ImGui::Text("Number of fluid particles: %d", 
+            parameters.particlesPerDimension.x * parameters.particlesPerDimension.y
+        );
 
-        float tempTimeStep = static_cast<float>(TIME_STEP);
+        float tempTimeStep = static_cast<float>(parameters.timeStep);
         ImGui::Text("\Time step:");
-        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, MAX_TIME_STEP)) {
-            TIME_STEP = static_cast<double>(tempTimeStep);
+        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, parameters.maxTimeStep)) {
+            parameters.timeStep = static_cast<double>(tempTimeStep);
         }
 
-        float tempGamma = static_cast<float>(GAMMA);
+        float tempGamma = static_cast<float>(parameters.gamma);
         ImGui::Text("\Gamma:");
         if (ImGui::SliderFloat("##Gamma", &tempGamma, 0.01, 1.0)) {
-            GAMMA = static_cast<double>(tempGamma);
+            parameters.gamma = static_cast<double>(tempGamma);
         }
 
-        float tempOmega = static_cast<float>(OMEGA);
+        float tempOmega = static_cast<float>(parameters.omega);
         ImGui::Text("\Omega:");
         if (ImGui::SliderFloat("##Omega", &tempOmega, 0.01, 1.0)) {
-            OMEGA = static_cast<double>(tempOmega);
+            parameters.omega = static_cast<double>(tempOmega);
         }
 
-        ImGui::Text("\Rest Density: %f", REST_DENSITY);
-        ImGui::Text("\Average Density: %f", AVG_DENSITY);
-        ImGui::Text("\Density Error, %%: %f", DENSITY_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Density Error before PPE, %%: %f", FIRST_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
+        ImGui::Text("\Rest Density: %f", parameters.restDensity);
+        ImGui::Text("\Average Density: %f", parameters.avgDensity);
+        ImGui::Text("\Density Error, %%: %f", parameters.densityErr / parameters.restDensity * 100);
+        ImGui::Text("\Density Error before PPE, %%: %f", parameters.firstErr / parameters.restDensity * 100);
+        ImGui::Text("\Number of iterations (l): %d", parameters.nbIterations);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 150));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
+        ImGui::SetNextWindowPos(ImVec2(0, parameters.windowSize.height - 150));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height));
 
         ImGui::Begin("Simulation Controls");
         if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
@@ -573,7 +604,7 @@ void Visualize2D() {
             else if (simulationType == 2) RotatingBoundaryInitialization();
         }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
-            SURFACE_TENSION = !SURFACE_TENSION;
+            parameters.surfaceTension = !parameters.surfaceTension;
             particles2D.clear(); Initialization2D();
         }
         if (ImGui::Button("Move forward one time step")) { 
@@ -584,12 +615,12 @@ void Visualize2D() {
             simulationType = (simulationType + 1) % 3;
 			particles2D.clear();
             if (simulationType == 0) {
-                PARTICLES_X *= 2;
+                parameters.particlesPerDimension.x *= 2;
                 Initialization2D();
             }
 			else if (simulationType == 1) MovingBoundaryInitialization();
             else if (simulationType == 2) {
-                PARTICLES_X /= 2;
+                parameters.particlesPerDimension.x /= 2;
                 RotatingBoundaryInitialization();
             }
         }
@@ -633,7 +664,7 @@ void VisualizeGhosts() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a window
-    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + WINDOW_WIDTH, WINDOW_HEIGHT, "SPH solver in 3D : projection onto plane", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(IMGUI_WINDOW_WIDTH + parameters.windowSize.width, parameters.windowSize.height, "SPH solver in 3D : projection onto plane", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window!" << std::endl;
         glfwTerminate();
@@ -661,7 +692,7 @@ void VisualizeGhosts() {
 
     glUseProgram(shader);
     GLuint resolutionUniform = glGetUniformLocation(shader, "resolution");
-    glUniform2f(resolutionUniform, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glUniform2f(resolutionUniform, parameters.windowSize.width, parameters.windowSize.height);
 
     // Initialize the buffers
     initBuffers2D();
@@ -686,7 +717,7 @@ void VisualizeGhosts() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        glViewport(IMGUI_WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width, parameters.windowSize.height);
 
         for (auto& p : ghostParticles) {
             if (p.isFluid) {
@@ -698,9 +729,11 @@ void VisualizeGhosts() {
                 pushVertex2D(p.position.x() / 2, p.position.y() / 2, r, g, b);
             }
             else {
-                double hue = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 30.0);
-                double saturation = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 0.0, 1.0);
-                double value = mapColor(p.mass, 0.0, SPACING * SPACING * SPACING * REST_DENSITY, 1.0, 0.6);
+                double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                    parameters.spacing * parameters.restDensity, 0.0, 30.0);
+                double saturation = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                    parameters.spacing * parameters.restDensity, 0.0, 1.0);
+                double value = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * parameters.spacing * parameters.restDensity, 1.0, 0.6);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
@@ -712,43 +745,45 @@ void VisualizeGhosts() {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glPointSize(SPACING); // Set the point size
+        glPointSize(parameters.spacing); // Set the point size
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
 
         //set fixed position for imgui window
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT - 100));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height - 100));
 
         ImGui::Begin("Simulation Parameters");
-        ImGui::Text("Number of fluid particles: %d", PARTICLES_X * PARTICLES_Y * PARTICLES_Z);
+        ImGui::Text("Number of fluid particles: %d", parameters.particlesPerDimension.x * 
+            parameters.particlesPerDimension.y * parameters.particlesPerDimension.z
+        );
 
-        float tempTimeStep = static_cast<float>(TIME_STEP);
+        float tempTimeStep = static_cast<float>(parameters.timeStep);
         ImGui::Text("\Time step:");
-        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, MAX_TIME_STEP)) {
-            TIME_STEP = static_cast<double>(tempTimeStep);
+        if (ImGui::SliderFloat("##TimeStep", &tempTimeStep, 0.0001, parameters.maxTimeStep)) {
+            parameters.timeStep = static_cast<double>(tempTimeStep);
         }
 
-        float tempGamma = static_cast<float>(GAMMA);
+        float tempGamma = static_cast<float>(parameters.gamma);
         ImGui::Text("\Gamma:");
         if (ImGui::SliderFloat("##Gamma", &tempGamma, 0.01, 1.0)) {
-            GAMMA = static_cast<double>(tempGamma);
+            parameters.gamma = static_cast<double>(tempGamma);
         }
 
-        float tempOmega = static_cast<float>(OMEGA);
+        float tempOmega = static_cast<float>(parameters.omega);
         ImGui::Text("\Omega:");
         if (ImGui::SliderFloat("##Omega", &tempOmega, 0.01, 1.0)) {
-            OMEGA = static_cast<double>(tempOmega);
+            parameters.omega = static_cast<double>(tempOmega);
         }
 
-        ImGui::Text("\Rest Density: %f", REST_DENSITY);
-        ImGui::Text("\Average Density: %f", AVG_DENSITY);
-        ImGui::Text("\Density Error, %%: %f", DENSITY_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Density Error before PPE, %%: %f", FIRST_ERR / REST_DENSITY * 100);
-        ImGui::Text("\Number of iterations (l): %d", NB_ITERATIONS);
+        ImGui::Text("\Rest Density: %f", parameters.restDensity);
+        ImGui::Text("\Average Density: %f", parameters.avgDensity);
+        ImGui::Text("\Density Error, %%: %f", parameters.densityErr / parameters.restDensity * 100);
+        ImGui::Text("\Density Error before PPE, %%: %f", parameters.firstErr / parameters.restDensity * 100);
+        ImGui::Text("\Number of iterations (l): %d", parameters.nbIterations);
         ImGui::End();
 
-        ImGui::SetNextWindowPos(ImVec2(0, WINDOW_HEIGHT - 150));
-        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, WINDOW_HEIGHT));
+        ImGui::SetNextWindowPos(ImVec2(0, parameters.windowSize.height - 150));
+        ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height));
 
         ImGui::Begin("Simulation Controls");
         if (ImGui::Button("Start/Pause")) { isSimulationRunning = !isSimulationRunning; }
