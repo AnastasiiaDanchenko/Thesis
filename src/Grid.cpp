@@ -1,5 +1,12 @@
 #include "..\headers\Grid.h"
 
+Grid2D::Grid2D() :
+	gridWidth(std::ceil(parameters.windowSize.width / parameters.spacing / 2)),
+	gridHeight(std::ceil(parameters.windowSize.height / parameters.spacing / 2)),
+	cellSize(parameters.spacing * 2) {
+	initializeGrid();
+}
+
 Grid2D::Grid2D(double size) :
     gridWidth(std::ceil(parameters.windowSize.width / size)),
     gridHeight(std::ceil(parameters.windowSize.height / size)),
@@ -179,45 +186,6 @@ void MovingBoundary() {
 			}
         }
     }
-}
-
-void InitFluid2D() {
-    for (int i = 0; i < parameters.particlesPerDimension.x; i++) {
-        for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
-			Particle2D p;
-
-            /*if (j % 2 == 0) {
-                p.position = Eigen::Vector2d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing);
-            }
-            else {
-                p.position = Eigen::Vector2d((i + 2.5) * parameters.spacing, (j + 2) * parameters.spacing);
-            }*/
-
-            p.position = Eigen::Vector2d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing);
-			p.ID = particles2D.size();
-            particles2D.push_back(p);
-		}
-	}
-}
-
-void InitBoundaries2D() {
-	int width = (parameters.windowSize.width / 2) / parameters.spacing - 1;
-	int hight = (parameters.windowSize.height / 2) / parameters.spacing - 1;
-
-    for (float i = 0; i < width; i += 0.5) {
-        for (float j = 0; j < hight; j += 0.5) {
-            if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1) {
-            //if (i < 3 || i > width - 4 || j < 3 || j > hight - 4) {
-				Particle2D p;
-
-				p.position = Eigen::Vector2d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing);
-				p.isFluid = false;
-				p.ID = particles2D.size();
-
-                particles2D.push_back(p);
-			}
-		}
-	}
 }
 
 void InitFluidForBoundaryTest2D() {

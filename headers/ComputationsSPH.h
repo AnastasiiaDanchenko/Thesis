@@ -3,6 +3,37 @@
 #include <omp.h>
 #include <limits>
 
+class Solver2D {
+private:
+	Grid2D grid2D;
+
+public:
+	Solver2D();
+
+	void virtual initBoundaries();
+	void virtual initFluid();
+	void virtual neighborSearch();
+
+	// SPH functions
+	void virtual computeDensityPressure();
+	void virtual computeAcceleration();
+	void virtual updateParticles();
+
+	// IISPH functions
+	void virtual boundaryMassUpdate();
+	void virtual computeDensity();
+	void virtual computeSurface();
+	void virtual predictVelocity();
+	void virtual computeDensityError();
+	void virtual computeLaplacian();
+	void virtual compressionConvergence();
+	void virtual advectParticles();
+};
+
+class Solver : public Solver2D {
+
+};
+
 void ComputeDensityPressure();
 void ComputeAcceleration();
 void UpdateParticles();
@@ -14,22 +45,7 @@ void ComputeDensityError();
 void ComputeLaplacian();
 void CompressionConvergence();
 
-// 2D
-void ComputeDensityPressure2D();
-void ComputeAcceleration2D();
-void Update2D();
-
-// IISPH functions 2D
-void ComputeDensity2D();
-void ComputeSurface2D();
-void PredictVelocity2D();
-void ComputeDensityError2D();
-void ComputeLaplacian2D();
-void CompressionConvergence2D();
-void UpdateParticles2D();
-
 void BoundaryMassUpdate();
-void BoundaryMassUpdate2D();
 
 void RotateBoundary2D();
 

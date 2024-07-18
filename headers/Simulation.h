@@ -4,15 +4,15 @@
 #include "ComputationsSPH.h"
 
 void Initialization();
-void Initialization2D();
+void Initialization2D(Solver2D& solver);
 
 void MovingBoundaryInitialization();
-void RotatingBoundaryInitialization();
+void RotatingBoundaryInitialization(Solver2D& solver);
 
 void Simulation(Grid& grid);
 void SimulationIISPH(Grid& grid);
 
-void Simulation2D(Grid2D& grid2d);
-void SimulationIISPH2D(Grid2D& grid2d);
-void MovingBoundaryIISPH2D(Grid2D& grid2d);
-void RotatingBoundaryIISPH2D(Grid2D& grid2d);
+void Simulation2D(Solver2D& solver);
+void SimulationIISPH2D(Solver2D& solver);
+void MovingBoundaryIISPH2D(Solver2D& solver);
+void RotatingBoundaryIISPH2D(Solver2D& solver);

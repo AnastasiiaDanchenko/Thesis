@@ -14,7 +14,7 @@ void SEvsPPE() {
     int steps = 100;
 
     for (auto method : METHODS) {
-        Initialization2D();
+        //Initialization2D();
 
         auto start = std::chrono::high_resolution_clock::now();
         if (method == "SE") {
@@ -51,8 +51,9 @@ int main() {
     parameters.readParameters();
 
     if (parameters.dimensions == 2){
-        Initialization2D();
-        Visualize2D();
+		Solver2D solver;
+        Initialization2D(solver);
+        Visualize2D(solver);
         //SEvsPPE();
     }
     else if (parameters.dimensions == 3) {

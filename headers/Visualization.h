@@ -19,5 +19,5 @@ void UpdateVBO();
 void VisualizationVBO();
 
 void Visualize();
-void Visualize2D();
+void Visualize2D(Solver2D& solver);
 void VisualizeGhosts();

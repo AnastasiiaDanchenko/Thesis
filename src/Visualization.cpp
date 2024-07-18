@@ -444,7 +444,7 @@ void saveImage(const char* filepath, GLFWwindow* w) {
     stbi_write_png(filepath, width, height, nrChannels, buffer.data(), stride);
 }
 
-void Visualize2D() {
+void Visualize2D(Solver2D& solver) {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -510,8 +510,8 @@ void Visualize2D() {
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            if (simulationType == 2) RotatingBoundaryIISPH2D(grid2D);
-			else SimulationIISPH2D(grid2D);
+            if (simulationType == 2) RotatingBoundaryIISPH2D(solver);
+			else SimulationIISPH2D(solver);
         }
 
         clearBuffers();
@@ -603,29 +603,29 @@ void Visualize2D() {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) { 
             particles2D.clear(); 
-            if (simulationType == 0) Initialization2D();
+            if (simulationType == 0) Initialization2D(solver);
             else if (simulationType == 1) MovingBoundaryInitialization();
-            else if (simulationType == 2) RotatingBoundaryInitialization();
+            else if (simulationType == 2) RotatingBoundaryInitialization(solver);
         }
         if (ImGui::Button("Surface Tension: ON/OFF")) {
             parameters.surfaceTension = !parameters.surfaceTension;
-            particles2D.clear(); Initialization2D();
+            particles2D.clear(); Initialization2D(solver);
         }
         if (ImGui::Button("Move forward one time step")) { 
-            if (simulationType == 2) RotatingBoundaryIISPH2D(grid2D);
-			else SimulationIISPH2D(grid2D); 
+            if (simulationType == 2) RotatingBoundaryIISPH2D(solver);
+			else SimulationIISPH2D(solver); 
         }
         if (ImGui::Button("Change simulation type")) {
             simulationType = (simulationType + 1) % 3;
 			particles2D.clear();
             if (simulationType == 0) {
                 parameters.particlesPerDimension.x *= 2;
-                Initialization2D();
+                Initialization2D(solver);
             }
 			else if (simulationType == 1) MovingBoundaryInitialization();
             else if (simulationType == 2) {
                 parameters.particlesPerDimension.x /= 2;
-                RotatingBoundaryInitialization();
+                RotatingBoundaryInitialization(solver);
             }
         }
         if (simulationType == 1) {

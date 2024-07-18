@@ -30,17 +30,16 @@ void Initialization() {
 	InitGhostFluid();
 }
 
-void Simulation2D(Grid2D& grid2D) {
-	grid2D.updateGrid();
-	grid2D.neighborSearch(particles2D);
-	ComputeDensityPressure2D();
-	ComputeAcceleration2D();
-	Update2D();
+void Simulation2D(Solver2D& solver) {
+	solver.neighborSearch();
+	solver.computeDensityPressure();
+	solver.computeAcceleration();
+	solver.updateParticles();
 }
 
-void Initialization2D() {
-	InitBoundaries2D();
-	InitFluid2D();
+void Initialization2D(Solver2D& solver) {
+	solver.initBoundaries();
+	solver.initFluid();
 }
 
 void MovingBoundaryInitialization() {
@@ -48,50 +47,45 @@ void MovingBoundaryInitialization() {
 	InitFluidForBoundaryTest2D();
 }
 
-void RotatingBoundaryInitialization() {
-	InitBoundaries2D();
+void RotatingBoundaryInitialization(Solver2D& solver) {
+	solver.initBoundaries();
 	RotatingBoundary2D();
-	InitFluid2D();
+	solver.initFluid();
 }
 
-void RotatingBoundaryIISPH2D(Grid2D& grid2D) {
-	grid2D.updateGrid();
-	grid2D.neighborSearch(particles2D);
-	BoundaryMassUpdate2D();
+void RotatingBoundaryIISPH2D(Solver2D& solver) {
+	solver.neighborSearch();
+	solver.boundaryMassUpdate();
+	solver.computeDensity();
+	solver.computeSurface();
+	solver.predictVelocity();
+	solver.computeDensityError();
+	solver.computeLaplacian();
+	solver.compressionConvergence();
 
-	ComputeDensity2D();
-	ComputeSurface2D();
-	PredictVelocity2D();
-	ComputeDensityError2D();
-	ComputeLaplacian2D();
-	CompressionConvergence2D();
 	RotateBoundary2D();
 }
 
-void SimulationIISPH2D(Grid2D& grid2D) {
-	grid2D.updateGrid();
-	grid2D.neighborSearch(particles2D);
-	BoundaryMassUpdate2D();
-
-	ComputeDensity2D();
-	ComputeSurface2D();
-	PredictVelocity2D();
-	ComputeDensityError2D();
-	ComputeLaplacian2D();
-	CompressionConvergence2D();
-	UpdateParticles2D();
+void SimulationIISPH2D(Solver2D& solver) {
+	solver.neighborSearch();
+	solver.boundaryMassUpdate();
+	solver.computeDensity();
+	solver.computeSurface();
+	solver.predictVelocity();
+	solver.computeDensityError();
+	solver.computeLaplacian();
+	solver.compressionConvergence();
+	solver.advectParticles();
 }
 
-void MovingBoundaryIISPH2D(Grid2D& grid2D) {
-	grid2D.updateGrid();
-	grid2D.neighborSearch(particles2D);
-	BoundaryMassUpdate2D();
-
-	ComputeDensity2D();
-	ComputeSurface2D();
-	PredictVelocity2D();
-	ComputeDensityError2D();
-	ComputeLaplacian2D();
-	CompressionConvergence2D();
-	UpdateParticles2D();
+void MovingBoundaryIISPH2D(Solver2D& solver) {
+	solver.neighborSearch();
+	solver.boundaryMassUpdate();
+	solver.computeDensity();
+	solver.computeSurface();
+	solver.predictVelocity();
+	solver.computeDensityError();
+	solver.computeLaplacian();
+	solver.compressionConvergence();
+	solver.advectParticles();
 }
