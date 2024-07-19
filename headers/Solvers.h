@@ -64,6 +64,7 @@ public:
 	void initMovingBoundary() override;
 
 	void initGhostFluid();
+	void initGhostBoundary();
 	void neighborSearchGhosts();
 	void updateGhosts();
 };

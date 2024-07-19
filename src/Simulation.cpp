@@ -25,6 +25,7 @@ void Initialization(Solver& solver) {
 	solver.initBoundaries();
 	solver.initFluid();
 	solver.initGhostFluid();
+	solver.initGhostBoundary();
 }
 
 void Simulation2D(Solver2D& solver) {

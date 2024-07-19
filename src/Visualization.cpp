@@ -283,14 +283,13 @@ void Visualize(Solver& solver) {
                     (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
                     (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
                      p.position.x() >= minBound.x() && p.position.x() <= maxBound.x() ||
-                     p.ID >= parameters.boundaryTestID) {
+                     p.ID >= parameters.boundaryTestID && p.position.x() >= -parameters.spacing) {
 					
-                    double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
-                        parameters.spacing * parameters.restDensity, 0.0, 30.0);
-                    double saturation = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
-                        parameters.spacing * parameters.restDensity, 0.0, 1.0);
-                    double value = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
-                        parameters.spacing * parameters.restDensity, 1.0, 0.6);
+                    double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0, 30.0);
+                    double saturation = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0,
+                        1.0);
+                    double value = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 1.0, 
+                        0.6);
                     double r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
@@ -299,15 +298,15 @@ void Visualize(Solver& solver) {
 			}
 		}
 
-        /*for (auto p : ghostParticles) {
-            if (p.isFluid) {
-                double hue = mapColor(p.density, 950.0f, 1000.0f, 240.0f, 0.0f);
-                double r, g, b;
-                HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
+        //for (auto p : ghostParticles) {
+        //    if (p.isFluid) {
+        //        double hue = mapColor(p.density, 950.0f, 1000.0f, 240.0f, 0.0f);
+        //        double r, g, b;
+        //        HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                pushVertex(p.position, r, g, b, 1.0f);
-            }
-        }*/
+        //        pushVertex(p.position, r, g, b, 1.0f);
+        //    }
+        //}
 
         syncBuffers();
 
@@ -733,15 +732,14 @@ void VisualizeGhosts(Solver& solver) {
                 pushVertex2D(p.position.x() / 2, p.position.y() / 2, r, g, b);
             }
             else {
-                double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
-                    parameters.spacing * parameters.restDensity, 0.0, 30.0);
-                double saturation = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
-                    parameters.spacing * parameters.restDensity, 0.0, 1.0);
-                double value = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * parameters.spacing * parameters.restDensity, 1.0, 0.6);
+                double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0, 30.0);
+                double saturation = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0, 
+                    1.0);
+                double value = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 1.0, 0.6);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
-                pushVertex2D(p.position.x(), p.position.y(), r, g, b);
+                pushVertex2D(p.position.x() / 2, p.position.y() / 2, r, g, b);
             }
         }
 
@@ -794,6 +792,7 @@ void VisualizeGhosts(Solver& solver) {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
             particles.clear();
+			ghostParticles.clear();
             Initialization(solver);
         }
         if (ImGui::Button("Move forward one time step")) {

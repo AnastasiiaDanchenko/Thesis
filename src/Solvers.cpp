@@ -577,8 +577,27 @@ void Solver::initGhostFluid() {
         for (int j = 0; j < parameters.particlesPerDimension.y; j++) {
             Particle p;
 
-            p.position = Eigen::Vector3d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing, parameters.windowSize.depth / 2);
+            p.position = Eigen::Vector3d((i + 2) * parameters.spacing, (j + 2) * parameters.spacing, parameters.windowSize.depth / 4);
+            p.ID = ghostParticles.size();
             ghostParticles.push_back(p);
+        }
+    }
+}
+
+void Solver::initGhostBoundary() {
+    int width = parameters.windowSize.width / parameters.spacing - 1;
+    int hight = parameters.windowSize.height / parameters.spacing - 1;
+
+    for (float i = 0; i < width; i += 0.5) {
+        for (float j = 0; j < hight; j += 0.5) {
+            if (i < 0.5 || i > width - 1 || j < 0.5 || j > hight - 1) {
+                Particle p;
+
+                p.position = Eigen::Vector3d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing, parameters.windowSize.depth / 4);
+                p.isFluid = false;
+                p.ID = ghostParticles.size();
+                ghostParticles.push_back(p);
+            }
         }
     }
 }
@@ -895,7 +914,7 @@ void Solver::boundaryMassUpdate() {
 }
 
 void Solver::neighborSearchGhosts() {
-	grid.neighborSearch(ghostParticles);
+	grid.neighborSearchGhosts();
 }
 
 void Solver::updateGhosts() {
@@ -906,14 +925,14 @@ void Solver::updateGhosts() {
         double density = 0, pressure = 0, weight = 0;
         Eigen::Vector3d velocity = Eigen::Vector3d::Zero();
 
-        for (auto p : g.neighbors) {
+        for (auto gn : g.neighbors) {
             // weighted sum of the density of the neighbors depending on the distance
-            double distance = (g.position - p->position).norm();
+            double distance = (g.position - gn->position).norm();
             weight += 1 / distance;
 
-            density += 1 / distance * p->density;
-            pressure += 1 / distance * p->pressure;
-            velocity += 1 / distance * p->velocity;
+            density += 1 / distance * gn->density;
+            pressure += 1 / distance * gn->pressure;
+            velocity += 1 / distance * gn->velocity;
 		}
         
 		g.density = density / weight;
@@ -922,5 +941,7 @@ void Solver::updateGhosts() {
         g.velocity.y() = velocity.y() / weight;
 
         g.position += parameters.timeStep * g.velocity;
+
+		//std::cout << "Ghost particle " << g.ID << " has velocity: " << g.velocity.x() << ", " << g.velocity.y() << ", " << g.velocity.z() << std::endl;
 	}
 }

@@ -9,7 +9,7 @@ Particle::Particle() :
     velocity(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
     acceleration(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
 
-    mass(parameters.spacing * parameters.spacing * parameters.spacing * parameters.restDensity),
+    mass(pow(parameters.spacing, 3) * parameters.restDensity),
     density(parameters.restDensity),
     pressure(0.0f),
     isFluid(true),
@@ -25,7 +25,7 @@ Particle2D::Particle2D() :
 	acceleration(Eigen::Vector2d(0.0, 0.0)),
 	normal(Eigen::Vector2d(0.0, 0.0)),
 
-	mass(parameters.spacing * parameters.spacing * parameters.restDensity),
+	mass(pow(parameters.spacing, 2) * parameters.restDensity),
 	density(parameters.restDensity),
 	pressure(0.0),
 	isFluid(true),

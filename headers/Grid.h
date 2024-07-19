@@ -41,4 +41,5 @@ public:
 	void initializeGrid() override;
 	void updateGrid() override;
 	void neighborSearch(std::vector<Particle>& particles);
+	void neighborSearchGhosts();
 };

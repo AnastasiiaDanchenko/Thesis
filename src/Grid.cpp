@@ -87,11 +87,12 @@ void Grid::updateGrid() {
 	}
 }
 
-void Grid::neighborSearch(std::vector<Particle>& particles) {
+void Grid::neighborSearch(std::vector<Particle>& part) {
 #pragma omp parallel for
-    for (int i = 0; i < particles.size(); i++) {
-        particles[i].neighbors.clear();
-        const Eigen::Vector3i cellNumber = (particles[i].position / cellSize).cast<int>();
+    for (int i = 0; i < part.size(); i++) {
+        part[i].neighbors.clear();
+
+        const Eigen::Vector3i cellNumber = (part[i].position / cellSize).cast<int>();
 
         for (int j = cellNumber.x() - 1; j <= cellNumber.x() + 1; j++) {
             for (int k = cellNumber.y() - 1; k <= cellNumber.y() + 1; k++) {
@@ -99,10 +100,35 @@ void Grid::neighborSearch(std::vector<Particle>& particles) {
                     if (j < 0 || j >= gridWidth || k < 0 || k >= gridHeight || l < 0 || l >= gridDepth) { continue; }
 
                     for (auto& p : cells[j + k * gridWidth + l * gridWidth * gridHeight].cellParticles) {
-                        double distance = std::sqrt((p->position - particles[i].position).squaredNorm());
+                        double distance = std::sqrt((p->position - part[i].position).squaredNorm());
 
                         if (distance < parameters.support) {
-                            particles[i].neighbors.push_back(p);
+                            part[i].neighbors.push_back(p);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Grid::neighborSearchGhosts() {
+#pragma omp parallel for
+    for (int i = 0; i < ghostParticles.size(); i++) {
+        ghostParticles[i].neighbors.clear();
+
+        const Eigen::Vector3i cellNumber = (ghostParticles[i].position / cellSize).cast<int>();
+
+        for (int j = cellNumber.x() - 1; j <= cellNumber.x() + 1; j++) {
+            for (int k = cellNumber.y() - 1; k <= cellNumber.y() + 1; k++) {
+                for (int l = cellNumber.z() - 1; l <= cellNumber.z() + 1; l++) {
+                    if (j < 0 || j >= gridWidth || k < 0 || k >= gridHeight || l < 0 || l >= gridDepth) { continue; }
+
+                    for (auto& p : cells[j + k * gridWidth + l * gridWidth * gridHeight].cellParticles) {
+                        double distance = std::sqrt((p->position - ghostParticles[i].position).squaredNorm());
+
+                        if (distance < parameters.support && p->isFluid) {
+                            ghostParticles[i].neighbors.push_back(p);
                         }
                     }
                 }
