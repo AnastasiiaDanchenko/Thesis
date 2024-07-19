@@ -115,6 +115,7 @@ void Grid::neighborSearch(std::vector<Particle>& part) {
 void Grid::neighborSearchGhosts() {
 #pragma omp parallel for
     for (int i = 0; i < ghostParticles.size(); i++) {
+		if (!ghostParticles[i].isFluid) { continue; }
         ghostParticles[i].neighbors.clear();
 
         const Eigen::Vector3i cellNumber = (ghostParticles[i].position / cellSize).cast<int>();

@@ -920,6 +920,7 @@ void Solver::neighborSearchGhosts() {
 void Solver::updateGhosts() {
 #pragma omp parallel for
     for (int i = 0; i < ghostParticles.size(); i++) {
+        if (!ghostParticles[i].isFluid) { continue; }
 		Particle& g = ghostParticles[i];
 		
         double density = 0, pressure = 0, weight = 0;
@@ -941,7 +942,5 @@ void Solver::updateGhosts() {
         g.velocity.y() = velocity.y() / weight;
 
         g.position += parameters.timeStep * g.velocity;
-
-		//std::cout << "Ghost particle " << g.ID << " has velocity: " << g.velocity.x() << ", " << g.velocity.y() << ", " << g.velocity.z() << std::endl;
 	}
 }
