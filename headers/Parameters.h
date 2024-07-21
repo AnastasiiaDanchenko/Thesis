@@ -57,6 +57,8 @@ struct Parameters {
 
 	int boundaryTestID;
 
+	int simulationType;
+
 	Parameters();
 	void readParameters();
 };

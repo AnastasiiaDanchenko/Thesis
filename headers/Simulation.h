@@ -3,15 +3,17 @@
 
 #include "Solvers.h"
 
-void Initialization(Solver& solver);
-void Initialization2D(Solver2D& solver);
+// 3D
+void Initialization(Solver& solver, int simulationCode);
 
 void MovingBoundaryInitialization(Solver2D& solver);
 void RotatingBoundaryInitialization(Solver2D& solver);
 
 void Simulation(Solver& solver);
-void SimulationIISPH(Solver& solver);
+void SimulationIISPH(Solver& solver, int simulationCode);
 
+// 2D
+void Initialization2D(Solver2D& solver);
 void Simulation2D(Solver2D& solver);
 void SimulationIISPH2D(Solver2D& solver);
 void MovingBoundaryIISPH2D(Solver2D& solver);

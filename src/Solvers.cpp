@@ -944,3 +944,36 @@ void Solver::updateGhosts() {
         g.position += parameters.timeStep * g.velocity;
 	}
 }
+
+void Solver::initRigidCube() {
+    int depth = (parameters.windowSize.depth / parameters.spacing - 1) / 4;
+	int width = depth, height = depth;
+
+	std::vector<Particle> body, contour;
+
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			for (int k = 0; k < depth; k++) {
+				Particle p;
+
+				p.position = Eigen::Vector3d(
+                    (i + 2) * parameters.spacing, 
+                    (j + parameters.windowSize.depth / parameters.spacing - 2) * parameters.spacing,
+                    (k + 2) * parameters.spacing
+                );
+				p.isFluid = false;
+				body.push_back(p);
+
+				if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
+					contour.push_back(p);
+				}
+			}
+		}
+	}
+
+	RigidBody newBody(body);
+    newBody.discardInnerParticles();
+	newBody.setOuterParticles(contour);
+    
+	this->rigidBodies.push_back(newBody);
+}

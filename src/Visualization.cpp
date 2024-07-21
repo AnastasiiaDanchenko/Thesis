@@ -240,7 +240,7 @@ void Visualize(Solver& solver) {
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH(solver);
+            SimulationIISPH(solver, parameters.simulationType);
         }
 
         clearBuffers();
@@ -308,6 +308,14 @@ void Visualize(Solver& solver) {
         //    }
         //}
 
+        if (parameters.simulationType != 0) {
+            for (auto body : solver.getRigidBodies()) {
+                for (auto p : body.getOuterParticles()) {
+					pushVertex(p.position, 1.0f, 0.0f, 0.0f, 1.0f);
+                }
+            }
+        }
+
         syncBuffers();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -362,9 +370,9 @@ void Visualize(Solver& solver) {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
             particles.clear();
-            Initialization(solver);
+            Initialization(solver, parameters.simulationType);
         }
-        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(solver); }
+        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(solver, parameters.simulationType); }
         if (ImGui::Button("Start moving boundary")) { solver.initMovingBoundary(); }
         ImGui::End();
 
@@ -710,7 +718,7 @@ void VisualizeGhosts(Solver& solver) {
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH(solver);
+            SimulationIISPH(solver, parameters.simulationType);
         }
 
         clearBuffers();
@@ -793,10 +801,10 @@ void VisualizeGhosts(Solver& solver) {
         if (ImGui::Button("Reset")) {
             particles.clear();
 			ghostParticles.clear();
-            Initialization(solver);
+            Initialization(solver, parameters.simulationType);
         }
         if (ImGui::Button("Move forward one time step")) {
-            SimulationIISPH(solver);
+            SimulationIISPH(solver, parameters.simulationType);
         }
         ImGui::End();
 

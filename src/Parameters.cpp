@@ -64,6 +64,8 @@ void Parameters::readParameters() {
             if (surface_tension.contains("enabled")) surfaceTension = surface_tension["enabled"].get<bool>();
             if (surface_tension.contains("cohesion")) cohesion = surface_tension["cohesion"].get<double>();
         }
+
+        if (dim_data.contains("simulation type")) simulationType = dim_data["simulation type"].get<int>();
     }
 
     if (dimensions == 2) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "Kernel.h"
+#include "RigidBody.h"
 #include <omp.h>
 #include <limits>
 
@@ -40,6 +41,7 @@ public:
 class Solver : public Solver2D {
 private:
 	Grid grid;
+	std::vector<RigidBody> rigidBodies;
 
 public:
 	Solver();
@@ -67,4 +69,7 @@ public:
 	void initGhostBoundary();
 	void neighborSearchGhosts();
 	void updateGhosts();
+
+	void initRigidCube();
+	std::vector<RigidBody>& getRigidBodies() { return rigidBodies; }
 };

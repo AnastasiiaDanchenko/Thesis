@@ -7,7 +7,7 @@ void Simulation(Solver& solver) {
 	solver.updateParticles();
 }
 
-void SimulationIISPH(Solver& solver) {
+void SimulationIISPH(Solver& solver, int simulationCode) {
 	solver.neighborSearch();
 	solver.boundaryMassUpdate();
 	solver.computeDensity();
@@ -17,15 +17,30 @@ void SimulationIISPH(Solver& solver) {
 	solver.compressionConvergence();
 	solver.updateParticles();
 
-	solver.neighborSearchGhosts();
-	solver.updateGhosts();
+	if (simulationCode == 0) {
+		solver.neighborSearchGhosts();
+		solver.updateGhosts();
+	}
+	else if (simulationCode == 1) {
+		for (auto body : solver.getRigidBodies()) {
+
+		}
+	}
 }
 
-void Initialization(Solver& solver) {
-	solver.initBoundaries();
-	solver.initFluid();
-	solver.initGhostFluid();
-	solver.initGhostBoundary();
+void Initialization(Solver& solver, int simulationCode) {
+	if (simulationCode == 0) {
+		solver.initBoundaries();
+		solver.initFluid();
+		solver.initGhostFluid();
+		solver.initGhostBoundary();
+	}
+	else if (simulationCode == 1) {
+		solver.initBoundaries();
+		//solver.initFluid();
+		solver.initRigidCube();
+	}
+	
 }
 
 void Simulation2D(Solver2D& solver) {

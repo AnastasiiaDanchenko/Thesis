@@ -33,6 +33,7 @@
     "surface_tension": {
       "enabled": true,
       "cohesion": 0.000001
-    }
+    },
+    "simulation type":  1
   }
 }

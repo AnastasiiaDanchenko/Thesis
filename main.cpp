@@ -58,9 +58,9 @@ int main() {
     }
     else if (parameters.dimensions == 3) {
 		Solver solver;
-        Initialization(solver);
-        //Visualize(solver);
-        VisualizeGhosts(solver);
+        Initialization(solver, parameters.simulationType);
+        Visualize(solver);
+        //VisualizeGhosts(solver);
 	}
 
     return 0;
