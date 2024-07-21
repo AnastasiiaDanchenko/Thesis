@@ -38,18 +38,30 @@ RigidBody::RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, 
 
 void RigidBody::computeParticleQuantities() {
 	Eigen::Vector3d force = Eigen::Vector3d::Zero(), torque = Eigen::Vector3d::Zero();
-	for (auto& p : outerParticles) {
+	/*for (auto& p : outerParticles) {
 		torque += (p.position - positionCM).cross(p.acceleration / p.mass);
 		force += p.acceleration / p.mass;
 	}
 
 	this->torque = torque;
+	this->force = force;*/
+
+	for (auto& p : outerParticles) {
+		auto acceleration = parameters.gravity;
+		//Eigen::Vector3d acceleration = Eigen::Vector3d::Zero();
+		for (auto n : p.neighbors) {
+			acceleration += n->acceleration + n->pressureAcceleration;// -parameters.gravity;
+		}
+		force += acceleration;
+		torque += (p.position - positionCM).cross(acceleration);
+	}
 	this->force = force;
+	this->torque = torque;
 }
 
 void RigidBody::updateBodyQuantities() {
 	positionCM += velocityCM * parameters.timeStep;
-	velocityCM += force / mass * parameters.timeStep;
+	velocityCM += force * parameters.timeStep;
 
 	Eigen::Quaterniond deltaRotation;
 	Eigen::Vector3d deltaTheta = angularVelocity * parameters.timeStep;
@@ -72,8 +84,17 @@ void RigidBody::updateBodyQuantities() {
 
 void RigidBody::updateParticles() {
 	for (auto& p : outerParticles) {
+		auto positionPrev = p.position;
+		auto velocityPrev = p.velocity;
 		p.position = rotationMatrix * (p.position - positionCM) + positionCM;
 		p.velocity = angularVelocity.cross(p.position - positionCM) + velocityCM;
+
+		if (p.position != positionPrev) {
+			std::cout << "Position changed" << std::endl;
+		}
+		if (p.velocity != velocityPrev) {
+			std::cout << "Velocity changed" << std::endl;
+		}
 	}
 }
 

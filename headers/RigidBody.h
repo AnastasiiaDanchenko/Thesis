@@ -3,19 +3,19 @@
 
 class RigidBody {
 private:
-	std::vector<Particle> innerParticles;
-	std::vector<Particle> outerParticles;
-	Eigen::Vector3d positionCM;
-	Eigen::Vector3d velocityCM;
-	Eigen::Vector3d angularVelocity;
-	Eigen::Vector3d force;
-	Eigen::Vector3d torque;
-	Eigen::Vector3d angularMomentum;
-	Eigen::Matrix3d rotationMatrix;
-	Eigen::Matrix3d inertiaTensor; // ^ -1
-	Eigen::Quaterniond orientation;
+	//std::vector<Particle> innerParticles;
+	//std::vector<Particle> outerParticles;
+	//Eigen::Vector3d positionCM;
+	//Eigen::Vector3d velocityCM;
+	//Eigen::Vector3d angularVelocity;
+	//Eigen::Vector3d force;
+	//Eigen::Vector3d torque;
+	//Eigen::Vector3d angularMomentum;
+	//Eigen::Matrix3d rotationMatrix;
+	Eigen::Matrix3d invInertiaTensor; // ^ -1
+	//Eigen::Quaterniond orientation;
 	double mass;
-	double density;
+	//double density;
 	
 public:
 	RigidBody();

@@ -254,10 +254,8 @@ void Visualize(Solver& solver) {
 
         glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width, parameters.windowSize.height);
 
-		float slicingPlane = 90.0f;
-
         for (auto p : particles) {
-            if (p.position.z() <= slicingPlane) {
+            if (p.position.z() <= parameters.slicingPlane) {
                 if (p.isFluid) {
                     double speed = magnitude(p.velocity);
                     double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
@@ -283,7 +281,7 @@ void Visualize(Solver& solver) {
         if (parameters.simulationType != 0) {
             for (auto body : solver.getRigidBodies()) {
                 for (auto p : body.getOuterParticles()) {
-					if (p.position.z() <= slicingPlane) {
+					if (p.position.z() <= parameters.slicingPlane) {
 						pushVertex(p.position, 1.0f, 0.0f, 0.0f, 1.0f);
 					}
                 }

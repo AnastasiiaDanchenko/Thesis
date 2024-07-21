@@ -58,6 +58,7 @@ struct Parameters {
 	int boundaryTestID;
 
 	int simulationType;
+	float slicingPlane;
 
 	Parameters();
 	void readParameters();

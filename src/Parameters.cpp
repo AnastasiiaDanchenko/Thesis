@@ -66,6 +66,7 @@ void Parameters::readParameters() {
         }
 
         if (dim_data.contains("simulation type")) simulationType = dim_data["simulation type"].get<int>();
+        if (dim_data.contains("slicing plane")) slicingPlane = dim_data["slicing plane"].get<float>();
     }
 
     if (dimensions == 2) {
