@@ -71,28 +71,28 @@ void Grid::initializeGrid() {
     cells.resize(gridWidth * gridHeight * gridDepth);
 }
 
-void Grid::updateGrid() {
+void Grid::updateGrid(std::vector<Particle*>& part) {
     for (auto& cell : cells) {
 		cell.cellParticles.clear();
     }
-    for (auto& p : particles) {
-        const Eigen::Vector3i cellNumber = (p.position / cellSize).cast<int>();
+    for (auto& p : part) {
+        const Eigen::Vector3i cellNumber = (p->position / cellSize).cast<int>();
         if (cellNumber.x() < 0 || cellNumber.x() >= gridWidth ||
             cellNumber.y() < 0 || cellNumber.y() >= gridHeight ||
             cellNumber.z() < 0 || cellNumber.z() >= gridDepth) {
 			continue;
 		}
 		cells[cellNumber.x() + cellNumber.y() * gridWidth +
-            cellNumber.z() * gridWidth * gridHeight].cellParticles.push_back(&p);
+            cellNumber.z() * gridWidth * gridHeight].cellParticles.push_back(p);
 	}
 }
 
-void Grid::neighborSearch(std::vector<Particle>& part) {
+void Grid::neighborSearch(std::vector<Particle*>& part) {
 #pragma omp parallel for
     for (int i = 0; i < part.size(); i++) {
-        part[i].neighbors.clear();
+        part[i]->neighbors.clear();
 
-        const Eigen::Vector3i cellNumber = (part[i].position / cellSize).cast<int>();
+        const Eigen::Vector3i cellNumber = (part[i]->position / cellSize).cast<int>();
 
         for (int j = cellNumber.x() - 1; j <= cellNumber.x() + 1; j++) {
             for (int k = cellNumber.y() - 1; k <= cellNumber.y() + 1; k++) {
@@ -100,10 +100,10 @@ void Grid::neighborSearch(std::vector<Particle>& part) {
                     if (j < 0 || j >= gridWidth || k < 0 || k >= gridHeight || l < 0 || l >= gridDepth) { continue; }
 
                     for (auto& p : cells[j + k * gridWidth + l * gridWidth * gridHeight].cellParticles) {
-                        double distance = std::sqrt((p->position - part[i].position).squaredNorm());
+                        double distance = std::sqrt((p->position - part[i]->position).squaredNorm());
 
                         if (distance < parameters.support) {
-                            part[i].neighbors.push_back(p);
+                            part[i]->neighbors.push_back(p);
                         }
                     }
                 }

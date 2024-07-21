@@ -620,8 +620,23 @@ void Solver::initMovingBoundary() {
 }
 
 void Solver::neighborSearch() {
-	grid.updateGrid();
-	grid.neighborSearch(particles);
+    std::vector<Particle*> allParticlePtrs;
+    for (auto& particle : particles) {
+        allParticlePtrs.push_back(&particle);
+    }
+    for (auto& body : rigidBodies) {
+        for (auto& particle : body.getOuterParticles()) {
+            allParticlePtrs.push_back(&particle);
+        }
+    }
+
+	grid.updateGrid(allParticlePtrs);
+	/*std::vector<Particle*> allParticles;
+	allParticles.insert(allParticles.end(), particles.begin(), particles.end());
+    for (auto& body : rigidBodies) {
+		allParticles.insert(allParticles.end(), body.getOuterParticles().begin(), body.getOuterParticles().end());
+	}*/
+	grid.neighborSearch(allParticlePtrs);
 }
 
 void Solver::computeDensityPressure(){
@@ -957,8 +972,8 @@ void Solver::initRigidCube() {
 				Particle p;
 
 				p.position = Eigen::Vector3d(
-                    (i + 2) * parameters.spacing, 
-                    (j + parameters.windowSize.depth / parameters.spacing - 2) * parameters.spacing,
+                    (i + parameters.windowSize.depth / parameters.spacing - 2) * parameters.spacing,
+                    (j + parameters.windowSize.depth / parameters.spacing / 2 - 2) * parameters.spacing,
                     (k + 2) * parameters.spacing
                 );
 				p.isFluid = false;

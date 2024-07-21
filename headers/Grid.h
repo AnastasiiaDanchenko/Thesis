@@ -1,5 +1,7 @@
 #pragma once
 #include "Particle.h"
+#include "RigidBody.h"
+
 #include <list>
 #include <numeric>
 
@@ -39,7 +41,8 @@ public:
 	Grid(double size);
 
 	void initializeGrid() override;
-	void updateGrid() override;
-	void neighborSearch(std::vector<Particle>& particles);
+	//void updateGrid() override;
+	void updateGrid(std::vector<Particle*>& particles);
+	void neighborSearch(std::vector<Particle*>& particles);
 	void neighborSearchGhosts();
 };

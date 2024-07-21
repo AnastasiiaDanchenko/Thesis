@@ -254,64 +254,38 @@ void Visualize(Solver& solver) {
 
         glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width, parameters.windowSize.height);
 
-        // Draw the particles
+		float slicingPlane = 90.0f;
+
         for (auto p : particles) {
-            if (p.isFluid) {
-                //colorize particles based on their speed
-                double speed = magnitude(p.velocity);
-                double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
-                double r, g, b;
-                HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
+            if (p.position.z() <= slicingPlane) {
+                if (p.isFluid) {
+                    double speed = magnitude(p.velocity);
+                    double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
+                    double r, g, b;
+                    HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                pushVertex(p.position, r, g, b, 1.0f);
-
-                /*bool isNeighbor = false;
-                for (auto& n : p.neighbors) {
-                    if (n == &particles[PARTICLE_NEIGHBORS]) { isNeighbor = true; break; }
+                    pushVertex(p.position, r, g, b, 1.0f);
                 }
-                if (p.ID == PARTICLE_NEIGHBORS) { pushVertex(p.position, 1.0f, 1.0f, 0.0f, 1.0f); }
-                else if (isNeighbor) { pushVertex(p.position, 0.0f, 1.0f, 0.0f, 1.0f); }
-                else { pushVertex(p.position, 0.2f, 0.5f, 1.0f, 1.0f); }*/
-            }
-            else {
-                if ((p.position.x() == minBound.x() || p.position.x() == maxBound.x()) && 
-                    (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
-                     p.position.z() >= minBound.z() && p.position.z() <= maxBound.z() ||
-                    (p.position.x() == minBound.x() || p.position.x() == maxBound.x()) &&
-                    (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
-                     p.position.y() >= minBound.y() && p.position.y() <= maxBound.y() || 
-                    (p.position.z() == minBound.z() || p.position.z() == maxBound.z()) &&
-                    (p.position.y() == minBound.y() || p.position.y() == maxBound.y()) &&
-                     p.position.x() >= minBound.x() && p.position.x() <= maxBound.x() ||
-                     p.ID >= parameters.boundaryTestID && p.position.x() >= -parameters.spacing) {
-					
+                else {
                     double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0, 30.0);
                     double saturation = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0,
                         1.0);
-                    double value = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 1.0, 
+                    double value = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 1.0,
                         0.6);
                     double r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
                     pushVertex(p.position, r, g, b, 1.0f);
                 }
-			}
+            }
 		}
-
-        //for (auto p : ghostParticles) {
-        //    if (p.isFluid) {
-        //        double hue = mapColor(p.density, 950.0f, 1000.0f, 240.0f, 0.0f);
-        //        double r, g, b;
-        //        HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
-
-        //        pushVertex(p.position, r, g, b, 1.0f);
-        //    }
-        //}
 
         if (parameters.simulationType != 0) {
             for (auto body : solver.getRigidBodies()) {
                 for (auto p : body.getOuterParticles()) {
-					pushVertex(p.position, 1.0f, 0.0f, 0.0f, 1.0f);
+					if (p.position.z() <= slicingPlane) {
+						pushVertex(p.position, 1.0f, 0.0f, 0.0f, 1.0f);
+					}
                 }
             }
         }

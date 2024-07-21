@@ -1,6 +1,5 @@
 #pragma once
 #include "Kernel.h"
-#include "RigidBody.h"
 #include <omp.h>
 #include <limits>
 

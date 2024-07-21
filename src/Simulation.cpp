@@ -23,7 +23,12 @@ void SimulationIISPH(Solver& solver, int simulationCode) {
 	}
 	else if (simulationCode == 1) {
 		for (auto body : solver.getRigidBodies()) {
+			/*for (auto& p : body.getOuterParticles()) {
+				std::cout << p.neighbors.size() << std::endl;
+			}
+			std::cout << std::endl;*/
 
+			//std::cout << body.getOuterParticles()[0].neighbors.size() << std::endl;
 		}
 	}
 }
@@ -37,7 +42,7 @@ void Initialization(Solver& solver, int simulationCode) {
 	}
 	else if (simulationCode == 1) {
 		solver.initBoundaries();
-		//solver.initFluid();
+		solver.initFluid();
 		solver.initRigidCube();
 	}
 	
