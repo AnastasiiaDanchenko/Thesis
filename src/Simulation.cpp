@@ -22,7 +22,7 @@ void SimulationIISPH(Solver& solver, int simulationCode) {
 		solver.updateGhosts();
 	}
 	else if (simulationCode == 1) {
-		for (auto body : solver.getRigidBodies()) {
+		for (auto& body : solver.getRigidBodies()) {
 			body.computeParticleQuantities();
 			body.updateBodyQuantities();
 			body.updateParticles();
