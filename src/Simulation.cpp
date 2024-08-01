@@ -16,6 +16,7 @@ void SimulationIISPH(Solver& solver, int simulationCode) {
 	solver.computeLaplacian();
 	solver.compressionConvergence();
 	solver.updateParticles();
+	solver.boundaryToRigidForces();
 
 	if (simulationCode == 0) {
 		solver.neighborSearchGhosts();

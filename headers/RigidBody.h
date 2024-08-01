@@ -19,14 +19,17 @@ private:
 	Eigen::Matrix3d invInitialInertiaTensor; // ^ -1
 	Eigen::Quaterniond orientation; // q
 	double mass;
-	//double density;
+	double density;
 	
 public:
 	RigidBody();
-	RigidBody(std::vector<Particle> particles);
+	RigidBody(std::vector<Particle> particles, double density);
+	RigidBody(std::vector<Particle> innerParticles, std::vector<Particle> outerParticles, double density);
 	RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, Eigen::Vector3d velocity, 
 		Eigen::Matrix3d rotation, Eigen::Vector3d angularMomentum, Eigen::Matrix3d inertiaTensor, double mass);
+
 	void discardInnerParticles();
+
 	void computeParticleQuantities();
 	void updateBodyQuantities();
 	void updateParticles();

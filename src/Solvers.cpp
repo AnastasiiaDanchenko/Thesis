@@ -626,6 +626,7 @@ void Solver::neighborSearch() {
     }
     for (auto& body : rigidBodies) {
         for (auto& particle : body.getOuterParticles()) {
+			particle.acceleration = Eigen::Vector3d::Zero();
             allParticlePtrs.push_back(&particle);
         }
     }
@@ -747,7 +748,12 @@ Eigen::Vector3d ViscosityAcceleration(Particle* p) {
 
         const Eigen::Vector3d v = p->velocity - neighbor->velocity;
         acceleration += 2 * parameters.viscosity * neighbor->mass * v / neighbor->density * r.dot(kernel) /
-        (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));
+            (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));
+
+        if (neighbor->isRigid) {
+			neighbor->acceleration -= 2 * parameters.viscosity * neighbor->mass * v / neighbor->density * r.dot(kernel)
+                / (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));
+        }
     }
 
     return acceleration;
@@ -856,6 +862,11 @@ void Solver::compressionConvergence() {
                 else {
                     acceleration -= 2 * parameters.gamma * neighbor->mass * p.pressure /
                         pow(parameters.restDensity, 2) * CubicSplineKernelGradient(p.position - neighbor->position);
+
+                    if (neighbor->isRigid) {
+						neighbor->acceleration += 2 * parameters.gamma * neighbor->mass * p.pressure /
+							pow(parameters.restDensity, 2) * CubicSplineKernelGradient(p.position - neighbor->position);
+                    }
                 }
             }
 
@@ -965,11 +976,12 @@ void Solver::initRigidCube() {
 				Particle p;
 
 				p.position = Eigen::Vector3d(
-                    (i + 2) * parameters.spacing,
+                    (i + parameters.windowSize.width / parameters.spacing / 2) * parameters.spacing,
                     (j + parameters.windowSize.depth / parameters.spacing - 2) * parameters.spacing,
                     (k + 2) * parameters.spacing
                 );
 				p.isFluid = false;
+				p.isRigid = true;
 				body.push_back(p);
 
 				if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
@@ -979,9 +991,35 @@ void Solver::initRigidCube() {
 		}
 	}
 
-	RigidBody newBody(body);
+	RigidBody newBody(body, contour, parameters.restDensity);
     newBody.discardInnerParticles();
-	newBody.setOuterParticles(contour);
     
 	this->rigidBodies.push_back(newBody);
+}
+
+void Solver::boundaryToRigidForces() {
+    for (auto& body : getRigidBodies()) {
+        for (auto& p : body.getOuterParticles()) {
+            Eigen::Vector3d acceleration = Eigen::Vector3d::Zero();
+
+            for (auto& n : p.neighbors) {
+                if (!n->isRigid && !n->isFluid) {
+
+                    // Viscosity
+                    const Eigen::Vector3d r = p.position - n->position;
+                    const Eigen::Vector3d kernel = CubicSplineKernelGradient(r);
+
+                    const Eigen::Vector3d v = p.velocity - n->velocity;
+                    acceleration += 2 * parameters.viscosity * n->mass * v / n->density * r.dot(kernel) /
+                        (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));
+
+                    // Pressure
+                    acceleration -= 2 * parameters.gamma * n->mass * p.pressure / pow(parameters.restDensity, 2) * 
+                        kernel;
+                }
+            }
+
+			p.acceleration += acceleration;
+        }
+    }
 }

@@ -14,6 +14,7 @@ public:
     double pressure;
 
     bool isFluid;
+	bool isRigid;
 
     int ID;
 
@@ -26,6 +27,9 @@ public:
     double sourceTerm;
     double diagonal;
     Eigen::Vector3d pressureAcceleration;
+
+	// Rigid body
+	Eigen::Vector3d relativePosition;
 };
 
 class Particle2D {

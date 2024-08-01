@@ -23,7 +23,7 @@
   "3D": {
     "window": [600, 600, 500],
     "spacing": 20,
-    "particles nb": [20, 20, 10],
+    "particles nb": [27, 15, 10],
     "timestep": 0.05,
     "stiffness": 1000000000.0,
     "viscosity": 15,

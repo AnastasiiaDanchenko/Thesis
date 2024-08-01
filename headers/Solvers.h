@@ -64,11 +64,14 @@ public:
 
 	void initMovingBoundary() override;
 
+	// Ghost particles
 	void initGhostFluid();
 	void initGhostBoundary();
 	void neighborSearchGhosts();
 	void updateGhosts();
 
+	// Rigid bodies kinematics
 	void initRigidCube();
+	void boundaryToRigidForces();
 	std::vector<RigidBody>& getRigidBodies() { return rigidBodies; }
 };
