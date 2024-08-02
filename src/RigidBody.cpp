@@ -3,9 +3,9 @@
 RigidBody::RigidBody() {
 }
 
-RigidBody::RigidBody(std::vector<Particle> particles, double density) {
+RigidBody::RigidBody(std::vector<Particle> particles, double bodyDensity) {
 	this->innerParticles = particles;
-	this->density = density;
+	this->density = bodyDensity;
 	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
 
 	this->velocityCM = Eigen::Vector3d::Zero();
@@ -29,10 +29,10 @@ RigidBody::RigidBody(std::vector<Particle> particles, double density) {
 	this->invInitialInertiaTensor = this->invInertiaTensor;
 }
 
-RigidBody::RigidBody(std::vector<Particle> inner, std::vector<Particle> outer, double density) {
+RigidBody::RigidBody(std::vector<Particle> inner, std::vector<Particle> outer, double bodyDensity) {
 	this->innerParticles = inner;
 	this->outerParticles = outer;
-	this->density = density;
+	this->density = bodyDensity;
 
 	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
 
@@ -71,6 +71,8 @@ RigidBody::RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, 
 	this->invInertiaTensor = inertiaTensor;
 }
 
+
+
 void RigidBody::computeParticleQuantities() {
 	this->force = this->mass * parameters.gravity;
 	this->torque = Eigen::Vector3d::Zero();
@@ -78,6 +80,7 @@ void RigidBody::computeParticleQuantities() {
 	for (auto& p : outerParticles) {
 		this->force += p.mass * p.acceleration;
 		this->torque += (p.position - this->positionCM).cross(p.mass * p.acceleration);
+		//std::cout << "Particle position: " << p.position.transpose() << std::endl;
 	}
 }
 
@@ -96,7 +99,6 @@ void RigidBody::updateBodyQuantities() {
 	deltaRotation.coeffs() *= 0.5 * parameters.timeStep;
 	this->orientation.coeffs() += deltaRotation.coeffs();
 	this->orientation.normalize();
-	//std::cout << "Orientation: " << orientation.coeffs() << std::endl;
 	this->rotationMatrix = this->orientation.toRotationMatrix();
 
 	// angular momentum L
@@ -107,7 +109,6 @@ void RigidBody::updateBodyQuantities() {
 	
 	// angular velocity w
 	this->angularVelocity = this->invInertiaTensor * this->angularMomentum;
-	//std::cout << "Angular velocity: " << angularVelocity.transpose() << std::endl;
 
 	
 }

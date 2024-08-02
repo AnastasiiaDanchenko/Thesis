@@ -1,5 +1,7 @@
 #pragma once
 #include "Kernel.h"
+#include "..\utilities\OBJ_Loader.h"
+#include "..\utilities\stl_reader.h"
 #include <omp.h>
 #include <limits>
 
@@ -72,6 +74,8 @@ public:
 
 	// Rigid bodies kinematics
 	void initRigidCube();
+	void addRigidBody(std::vector < std::vector<Particle>> body);
 	void boundaryToRigidForces();
+	std::vector <std::vector<Particle>> sampleOBJ(std::string fileName);
 	std::vector<RigidBody>& getRigidBodies() { return rigidBodies; }
 };

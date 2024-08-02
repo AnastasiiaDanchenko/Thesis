@@ -40,8 +40,9 @@ void Initialization(Solver& solver, int simulationCode) {
 	}
 	else if (simulationCode == 1) {
 		solver.initBoundaries();
-		solver.initFluid();
-		solver.initRigidCube();
+		//solver.initFluid();
+		//solver.initRigidCube();
+		solver.addRigidBody(solver.sampleOBJ("C:/dev/MasterProject/Thesis/meshes/stanford-bunny_low_poly.obj"));
 	}
 	
 }

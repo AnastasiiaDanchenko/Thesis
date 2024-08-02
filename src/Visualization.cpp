@@ -262,7 +262,7 @@ void Visualize(Solver& solver) {
                     double r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                    pushVertex(p.position, r, g, b, 1.0f);
+                    //pushVertex(p.position, r, g, b, 1.0f);
                 }
                 else {
                     double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0, 30.0);

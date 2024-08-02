@@ -1005,13 +1005,13 @@ void Solver::boundaryToRigidForces() {
             for (auto& n : p.neighbors) {
                 if (!n->isRigid && !n->isFluid) {
 
-                    // Viscosity
                     const Eigen::Vector3d r = p.position - n->position;
                     const Eigen::Vector3d kernel = CubicSplineKernelGradient(r);
-
-                    const Eigen::Vector3d v = p.velocity - n->velocity;
+                    
+                    // Viscosity
+                    /*const Eigen::Vector3d v = p.velocity - n->velocity;
                     acceleration += 2 * parameters.viscosity * n->mass * v / n->density * r.dot(kernel) /
-                        (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));
+                        (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));*/
 
                     // Pressure
                     acceleration -= 2 * parameters.gamma * n->mass * p.pressure / pow(parameters.restDensity, 2) * 
@@ -1022,4 +1022,55 @@ void Solver::boundaryToRigidForces() {
 			p.acceleration += acceleration;
         }
     }
+}
+
+std::vector <std::vector<Particle>> Solver::sampleOBJ(std::string fileName) {
+    objl::Loader loader;
+    bool loadout = loader.LoadFile(fileName);
+
+    if (!loadout) {
+		std::cerr << "Error loading file. Returning empty vector." << std::endl;
+		// return empty vector
+        return std::vector <std::vector<Particle>>();
+	}
+
+    std::vector<std::vector<Particle>> bodyParticles(2);
+
+	for (auto& mesh : loader.LoadedMeshes) {
+        for (int i = 0; i < mesh.Indices.size(); i += 3) {
+            unsigned int index1 = mesh.Indices[i];
+            unsigned int index2 = mesh.Indices[i + 1];
+            unsigned int index3 = mesh.Indices[i + 2];
+
+            const objl::Vertex& v1 = mesh.Vertices[index1];
+            const objl::Vertex& v2 = mesh.Vertices[index2];
+            const objl::Vertex& v3 = mesh.Vertices[index3];
+
+            // calculate centroid of the triangle
+            Eigen::Vector3d centroid = Eigen::Vector3d(
+				(v1.Position.X + v2.Position.X + v3.Position.X) / 3,
+				(v1.Position.Y + v2.Position.Y + v3.Position.Y) / 3,
+				(v1.Position.Z + v2.Position.Z + v3.Position.Z) / 3
+			);
+
+            // correct for mesh size
+            centroid *= 1000;
+
+            Particle p, p1;
+            p.position = Eigen::Vector3d(centroid.x(), centroid.y(), centroid.z());
+            p1.position = Eigen::Vector3d(centroid.x(), centroid.y(), centroid.z());
+            p.ID = bodyParticles[0].size();
+            p1.ID = bodyParticles[1].size();
+            bodyParticles[0].push_back(p);
+            bodyParticles[1].push_back(p1);
+        }
+	}
+    
+	return bodyParticles;
+}
+
+void Solver::addRigidBody(std::vector<std::vector<Particle>> body) {
+	RigidBody newBody(body[0], body[1], parameters.restDensity);
+	newBody.discardInnerParticles();
+	this->rigidBodies.push_back(newBody);
 }
