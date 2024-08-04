@@ -75,6 +75,6 @@ public:
 	void initRigidCube();
 	void addRigidBody(std::vector < std::vector<Particle>> body);
 	void boundaryToRigidForces();
-	std::vector <std::vector<Particle>> sampleOBJ(std::string fileName);
+	std::vector <std::vector<Particle>> sampleOBJ();
 	std::vector<RigidBody>& getRigidBodies() { return rigidBodies; }
 };

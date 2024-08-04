@@ -40,8 +40,11 @@ void Initialization(Solver& solver, int simulationCode) {
 	else if (simulationCode == 1) {
 		solver.initBoundaries();
 		solver.initFluid();
-		//solver.initRigidCube();
-		solver.addRigidBody(solver.sampleOBJ(parameters.rigidBody.pathToFile));
+		if (parameters.rigidBodyType == "cubes") {
+			solver.initRigidCube();
+		} else {
+			solver.addRigidBody(solver.sampleOBJ());
+		}
 	}
 	
 }

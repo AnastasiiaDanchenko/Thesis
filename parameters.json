@@ -21,9 +21,9 @@
   },
 
   "3D": {
-    "window": [600, 600, 500],
+    "window": [800, 600, 500],
     "spacing": 20,
-    "particles nb": [27, 15, 10],
+    "particles nb": [37, 15, 10],
     "timestep": 0.05,
     "stiffness": 1000000000.0,
     "viscosity": 15,
@@ -36,11 +36,12 @@
     },
     "simulation type": 1,
     "slicing plane": 200,
-    "body type":  "bunny",
+    "body type":  "cubes",
     "rigid bodies" : [
       {
-        "type": "cube",
-        "density": 1000.0
+        "type": "cubes",
+        "density": 1000.0,
+        "path":  ""
       },
       {
         "type": "bunny",

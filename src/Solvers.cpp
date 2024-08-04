@@ -929,19 +929,6 @@ void Solver::boundaryMassUpdate() {
             p.mass = parameters.restDensity * 0.8 / kernelSum;
         }
     }
-
-    /*for (int i = 0; i < this->rigidBodies.size(); i++) {
-		for (int j = 0; j < this->rigidBodies[i].getOuterParticles().size(); j++) {
-			Particle& p = this->rigidBodies[i].getOuterParticles()[j];
-			double kernelSum = 0.0;
-			for (auto neighbor : p.neighbors) {
-				if (neighbor->isFluid == false) {
-					kernelSum += CubicSplineKernel(p.position - neighbor->position);
-				}
-			}
-			p.mass = parameters.rigidBody.density * 1 / kernelSum;
-		}
-	}*/
 }
 
 void Solver::neighborSearchGhosts() {
@@ -979,66 +966,43 @@ void Solver::updateGhosts() {
 void Solver::initRigidCube() {
     int depth = (parameters.windowSize.depth / parameters.spacing - 1) / 4;
 	int width = depth, height = depth;
+    std::vector<double> factors = { 0.2, 0.5, 1, 2 };
 
-	std::vector<Particle> body, contour;
+    for (int cubeNb = 0; cubeNb < factors.size(); cubeNb++) {
+        std::vector<Particle> body, contour;
 
-	for (int i = 0; i < width; i++) {
-		for (int j = 0; j < height; j++) {
-			for (int k = 0; k < depth; k++) {
-				Particle p;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                for (int k = 0; k < depth; k++) {
+                    Particle p;
 
-				p.position = Eigen::Vector3d(
-                    (i + parameters.windowSize.width / parameters.spacing / 2) * parameters.spacing,
-                    (j + parameters.windowSize.depth / parameters.spacing - 2) * parameters.spacing,
-                    (k + 2) * parameters.spacing
-                );
-				p.isFluid = false;
-				p.isRigid = true;
-				body.push_back(p);
+                    p.position = Eigen::Vector3d(
+                        (i + cubeNb * 10 + 3) * parameters.spacing,
+                        (j + parameters.windowSize.depth / parameters.spacing - 5) * parameters.spacing,
+                        (k + 4) * parameters.spacing
+                    );
+                    p.isFluid = false;
+                    p.isRigid = true;
+                    body.push_back(p);
 
-				if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
-					contour.push_back(p);
-				}
-			}
-		}
-	}
-
-	RigidBody newBody(body, contour, parameters.restDensity);
-    newBody.discardInnerParticles();
-    
-	this->rigidBodies.push_back(newBody);
-}
-
-void Solver::boundaryToRigidForces() {
-    for (auto& body : getRigidBodies()) {
-        for (auto& p : body.getOuterParticles()) {
-            Eigen::Vector3d acceleration = Eigen::Vector3d::Zero();
-
-            for (auto& n : p.neighbors) {
-                if (!n->isRigid && !n->isFluid) {
-
-                    const Eigen::Vector3d r = p.position - n->position;
-                    const Eigen::Vector3d kernel = CubicSplineKernelGradient(r);
-                    
-                    // Viscosity
-                    /*const Eigen::Vector3d v = p.velocity - n->velocity;
-                    acceleration += 2 * parameters.viscosity * n->mass * v / n->density * r.dot(kernel) /
-                        (r.squaredNorm() + 0.01f * pow(parameters.spacing, 2));*/
-
-                    // Pressure
-                    acceleration -= 2 * parameters.gamma * n->mass * p.pressure / pow(parameters.restDensity, 2) * 
-                        kernel;
+                    if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
+                        contour.push_back(p);
+                    }
                 }
             }
-
-			p.acceleration += acceleration;
         }
+
+        RigidBody newBody(body, contour, parameters.rigidBody.density * factors[cubeNb]);
+        newBody.discardInnerParticles();
+
+        this->rigidBodies.push_back(newBody);
     }
+    std::cout << rigidBodies.size() << " rigid bodies initialized." << std::endl;
 }
 
-std::vector <std::vector<Particle>> Solver::sampleOBJ(std::string fileName) {
+std::vector<std::vector<Particle>> Solver::sampleOBJ() {
     objl::Loader loader;
-    bool loadout = loader.LoadFile(fileName);
+    bool loadout = loader.LoadFile(parameters.rigidBody.pathToFile);
 
     if (!loadout) {
 		std::cerr << "Error loading file. Returning empty vector." << std::endl;
