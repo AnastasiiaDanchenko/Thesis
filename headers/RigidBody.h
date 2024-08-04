@@ -7,17 +7,14 @@ private:
 	std::vector<Particle> innerParticles;
 	std::vector<Particle> outerParticles;
 	Eigen::Vector3d positionCM; // X
-	Eigen::Vector3d prevPositionCM; // X
 	Eigen::Vector3d velocityCM; // V
 	Eigen::Vector3d angularVelocity; // omega
 	Eigen::Vector3d force; // F
 	Eigen::Vector3d torque; // tau
-	Eigen::Vector3d linearMomentum; // P
 	Eigen::Vector3d angularMomentum; // L
 	Eigen::Matrix3d rotationMatrix; // R
 	Eigen::Matrix3d invInertiaTensor; // ^ -1
 	Eigen::Matrix3d invInitialInertiaTensor; // ^ -1
-	Eigen::Quaterniond orientation; // q
 	double mass;
 	double density;
 	

@@ -1,5 +1,14 @@
 #include "..\headers\RigidBody.h"
 
+Eigen::Matrix3d vectorToMatrix(Eigen::Vector3d& vector) {
+	Eigen::Matrix3d matrix;
+	matrix << 0, -vector.z(), vector.y(),
+		vector.z(), 0, -vector.x(),
+		-vector.y(), vector.x(), 0;
+
+	return matrix;
+}
+
 RigidBody::RigidBody() {
 }
 
@@ -14,7 +23,6 @@ RigidBody::RigidBody(std::vector<Particle> particles, double bodyDensity) {
 	this->invInertiaTensor = Eigen::Matrix3d::Identity();
 	this->invInitialInertiaTensor = Eigen::Matrix3d::Zero();
 	this->rotationMatrix = Eigen::Matrix3d::Identity();
-	this->orientation = Eigen::Quaterniond::Identity();
 
 	for (auto& p : innerParticles) {
 		this->positionCM += p.position * p.mass;
@@ -42,16 +50,15 @@ RigidBody::RigidBody(std::vector<Particle> inner, std::vector<Particle> outer, d
 	this->invInertiaTensor = Eigen::Matrix3d::Identity();
 	this->invInitialInertiaTensor = Eigen::Matrix3d::Zero();
 	this->rotationMatrix = Eigen::Matrix3d::Identity();
-	this->orientation = Eigen::Quaterniond::Identity();
 
 	for (auto& p : innerParticles) {
 		this->positionCM += p.position * p.mass;
 	}
-	this->positionCM /= mass;
+	this->positionCM /= innerParticles.size() * parameters.restDensity * pow(parameters.spacing, 3);
 
 	for (auto& p : innerParticles) {
 		p.relativePosition = p.position - positionCM;
-		this->invInertiaTensor -= p.mass * p.relativePosition * p.relativePosition.transpose();
+		this->invInertiaTensor -= p.mass * vectorToMatrix(p.relativePosition) * vectorToMatrix(p.relativePosition);
 	}
 	for (auto& p : outerParticles) {
 		p.relativePosition = p.position - positionCM;
@@ -71,35 +78,25 @@ RigidBody::RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, 
 	this->invInertiaTensor = inertiaTensor;
 }
 
-
-
 void RigidBody::computeParticleQuantities() {
 	this->force = this->mass * parameters.gravity;
 	this->torque = Eigen::Vector3d::Zero();
 
 	for (auto& p : outerParticles) {
 		this->force += p.mass * p.acceleration;
-		this->torque += (p.position - this->positionCM).cross(p.mass * p.acceleration);
-		//std::cout << "Particle position: " << p.position.transpose() << std::endl;
+		this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration);
 	}
 }
 
 void RigidBody::updateBodyQuantities() {
 	// position first, using old velocity
-	this->prevPositionCM = this->positionCM;
 	this->positionCM += this->velocityCM * parameters.timeStep;
 
 	// velocity 
-	this->linearMomentum += this->force * parameters.timeStep;
-	this->velocityCM = this->linearMomentum / this->mass;
+	this->velocityCM += parameters.timeStep * this->force / this->mass;
 	
 	// orientation A
-	Eigen::Quaterniond deltaRotation(0, angularVelocity.x(), angularVelocity.y(), angularVelocity.z());
-	deltaRotation *= this->orientation;
-	deltaRotation.coeffs() *= 0.5 * parameters.timeStep;
-	this->orientation.coeffs() += deltaRotation.coeffs();
-	this->orientation.normalize();
-	this->rotationMatrix = this->orientation.toRotationMatrix();
+	this->rotationMatrix += parameters.timeStep * vectorToMatrix(this->angularVelocity) * this->rotationMatrix;
 
 	// angular momentum L
 	this->angularMomentum += this->torque * parameters.timeStep;
@@ -116,7 +113,8 @@ void RigidBody::updateBodyQuantities() {
 void RigidBody::updateParticles() {
 	for (auto& p : outerParticles) {
 		p.position = rotationMatrix * p.relativePosition + positionCM;
-		p.velocity = angularVelocity.cross(p.relativePosition) + velocityCM;
+		p.velocity = angularVelocity.cross(rotationMatrix * p.relativePosition) + velocityCM;
+		p.acceleration = Eigen::Vector3d::Zero();
 	}
 }
 

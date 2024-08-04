@@ -67,6 +67,20 @@ void Parameters::readParameters() {
 
         if (dim_data.contains("simulation type")) simulationType = dim_data["simulation type"].get<int>();
         if (dim_data.contains("slicing plane")) slicingPlane = dim_data["slicing plane"].get<float>();
+
+        if (dim_data.contains("body type")) rigidBodyType = dim_data["body type"].get<std::string>();
+        if (dim_data.contains("rigid bodies")) {
+            if (dim_data.contains("rigid bodies")) {
+                for (const auto& rb : dim_data["rigid bodies"]) {
+                    if (rb["type"].get<std::string>() == rigidBodyType) {
+                        rigidBody.type = rb["type"].get<std::string>();
+                        rigidBody.density = rb["density"].get<double>();
+                        rigidBody.pathToFile = rb["path"].get<std::string>();
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     if (dimensions == 2) {

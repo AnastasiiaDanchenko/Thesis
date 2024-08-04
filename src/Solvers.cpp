@@ -626,7 +626,6 @@ void Solver::neighborSearch() {
     }
     for (auto& body : rigidBodies) {
         for (auto& particle : body.getOuterParticles()) {
-			particle.acceleration = Eigen::Vector3d::Zero();
             allParticlePtrs.push_back(&particle);
         }
     }
@@ -930,6 +929,19 @@ void Solver::boundaryMassUpdate() {
             p.mass = parameters.restDensity * 0.8 / kernelSum;
         }
     }
+
+    /*for (int i = 0; i < this->rigidBodies.size(); i++) {
+		for (int j = 0; j < this->rigidBodies[i].getOuterParticles().size(); j++) {
+			Particle& p = this->rigidBodies[i].getOuterParticles()[j];
+			double kernelSum = 0.0;
+			for (auto neighbor : p.neighbors) {
+				if (neighbor->isFluid == false) {
+					kernelSum += CubicSplineKernel(p.position - neighbor->position);
+				}
+			}
+			p.mass = parameters.rigidBody.density * 1 / kernelSum;
+		}
+	}*/
 }
 
 void Solver::neighborSearchGhosts() {
@@ -1057,10 +1069,16 @@ std::vector <std::vector<Particle>> Solver::sampleOBJ(std::string fileName) {
             centroid *= 1000;
 
             Particle p, p1;
-            p.position = Eigen::Vector3d(centroid.x(), centroid.y(), centroid.z());
-            p1.position = Eigen::Vector3d(centroid.x(), centroid.y(), centroid.z());
+            p.position = Eigen::Vector3d(centroid.x() + parameters.windowSize.width / 2, 
+                centroid.y() + parameters.windowSize.height / 1.5, centroid.z() + parameters.windowSize.depth / 4);
+            p1.position = Eigen::Vector3d(centroid.x() + parameters.windowSize.width / 2, 
+                centroid.y() + parameters.windowSize.height / 1.5, centroid.z() + parameters.windowSize.depth / 4);
             p.ID = bodyParticles[0].size();
             p1.ID = bodyParticles[1].size();
+            p.isRigid = true;
+            p1.isRigid = true;
+            p.isFluid = false;
+            p1.isFluid = false;
             bodyParticles[0].push_back(p);
             bodyParticles[1].push_back(p1);
         }
@@ -1070,7 +1088,7 @@ std::vector <std::vector<Particle>> Solver::sampleOBJ(std::string fileName) {
 }
 
 void Solver::addRigidBody(std::vector<std::vector<Particle>> body) {
-	RigidBody newBody(body[0], body[1], parameters.restDensity);
+	RigidBody newBody(body[0], body[1], parameters.rigidBody.density);
 	newBody.discardInnerParticles();
 	this->rigidBodies.push_back(newBody);
 }

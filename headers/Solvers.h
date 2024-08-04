@@ -1,7 +1,6 @@
 #pragma once
 #include "Kernel.h"
 #include "..\utilities\OBJ_Loader.h"
-#include "..\utilities\stl_reader.h"
 #include <omp.h>
 #include <limits>
 

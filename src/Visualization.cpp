@@ -262,7 +262,7 @@ void Visualize(Solver& solver) {
                     double r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                    //pushVertex(p.position, r, g, b, 1.0f);
+                    pushVertex(p.position, r, g, b, 1.0f);
                 }
                 else {
                     double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.restDensity, 0.0, 30.0);
@@ -279,11 +279,22 @@ void Visualize(Solver& solver) {
 		}
 
         if (parameters.simulationType != 0) {
-            for (auto body : solver.getRigidBodies()) {
+            for (auto& body : solver.getRigidBodies()) {
                 pushVertex(body.getPositionCM(), 0.0f, 1.0f, 0.0f, 1.0f);
-                for (auto p : body.getOuterParticles()) {
+                for (auto& p : body.getOuterParticles()) {
 					if (p.position.z() <= parameters.slicingPlane) {
-						pushVertex(p.position, 1.0f, 0.0f, 0.0f, 0.5f);
+						pushVertex(p.position, 1.0f, 0.0f, 0.0f, 1.0f);
+
+                        /*double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.rigidBody.density, 
+                            0.0, 30.0);
+                        double saturation = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * 
+                            parameters.rigidBody.density, 0.0, 1.0);
+                        double value = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.rigidBody.density,
+                            1.0, 0.6);
+                        double r, g, b;
+                        HSVtoRGB(&r, &g, &b, hue, saturation, value);
+
+                        pushVertex(p.position, r, g, b, 1.0f);*/
 					}
                 }
             }

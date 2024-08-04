@@ -24,6 +24,12 @@ struct ParticlesPerDimension {
 	int z;
 };
 
+struct RigidBodyStruct {
+	std::string type;
+	double density;
+	std::string pathToFile;
+};
+
 struct Parameters {
 	WindowSize windowSize;
 	int dimensions;
@@ -59,6 +65,9 @@ struct Parameters {
 
 	int simulationType;
 	float slicingPlane;
+
+	std::string rigidBodyType;
+	RigidBodyStruct rigidBody;
 
 	Parameters();
 	void readParameters();

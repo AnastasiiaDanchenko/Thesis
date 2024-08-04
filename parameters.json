@@ -2,7 +2,7 @@
   "dimensions": 3,
   "support": 2.0,
   "density": 1000.0,
-  "visualize neighbors": 3000,
+  "visualize neighbors": 50,
 
   "2D": {
     "window":  [800, 800],
@@ -35,6 +35,18 @@
       "cohesion": 0.000001
     },
     "simulation type": 1,
-    "slicing plane" :  200
+    "slicing plane": 200,
+    "body type":  "bunny",
+    "rigid bodies" : [
+      {
+        "type": "cube",
+        "density": 1000.0
+      },
+      {
+        "type": "bunny",
+        "density": 300.0,
+        "path": "C:/dev/MasterProject/Thesis/meshes/stanford-bunny_low_poly.obj"
+      }
+    ]
   }
 }

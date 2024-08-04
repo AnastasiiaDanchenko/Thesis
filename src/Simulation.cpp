@@ -16,7 +16,6 @@ void SimulationIISPH(Solver& solver, int simulationCode) {
 	solver.computeLaplacian();
 	solver.compressionConvergence();
 	solver.updateParticles();
-	solver.boundaryToRigidForces();
 
 	if (simulationCode == 0) {
 		solver.neighborSearchGhosts();
@@ -40,9 +39,9 @@ void Initialization(Solver& solver, int simulationCode) {
 	}
 	else if (simulationCode == 1) {
 		solver.initBoundaries();
-		//solver.initFluid();
+		solver.initFluid();
 		//solver.initRigidCube();
-		solver.addRigidBody(solver.sampleOBJ("C:/dev/MasterProject/Thesis/meshes/stanford-bunny_low_poly.obj"));
+		solver.addRigidBody(solver.sampleOBJ(parameters.rigidBody.pathToFile));
 	}
 	
 }
