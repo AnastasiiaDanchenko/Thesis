@@ -964,7 +964,7 @@ void Solver::updateGhosts() {
 }
 
 void Solver::initRigidCube() {
-    int depth = (parameters.windowSize.depth / parameters.spacing - 1) / 4;
+    int depth = 6;
 	int width = depth, height = depth;
     std::vector<double> factors = { 0.2, 0.5, 1, 2 };
 

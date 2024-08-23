@@ -245,8 +245,6 @@ void Visualize(Solver& solver) {
 
         clearBuffers();
 
-        clearBuffers();
-
         // Render ImGui
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -805,4 +803,79 @@ void VisualizeGhosts(Solver& solver) {
 
     glDeleteProgram(shader);
     glfwTerminate();
+}
+
+void ExportPLY(Solver& solver) {
+    int nbFrames = 100;
+    Grid grid(parameters.spacing * 2);
+
+    std::cout << "Exporting simulation frames to .ply files..." << std::endl;
+
+    int nbRigidParticles = 0;
+    for (auto& body : solver.getRigidBodies()) {
+        nbRigidParticles += body.getOuterParticles().size();
+	}
+
+    for (int i = 0; i < nbFrames; i++) {
+		SimulationIISPH(solver, parameters.simulationType);
+
+        double scaleFactor = 0.01;
+		
+        std::string fileName = "output/blender_frames/" + std::to_string(i) + ".ply";
+        std::ofstream file(fileName);
+
+        if (!file.is_open()) {
+			std::cerr << "Failed to open .ply file for writing." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+        file << "ply" << std::endl;
+		file << "format ascii 1.0" << std::endl;
+		file << "element vertex " << //particles.size() + nbrigidParticles << std::endl;
+            parameters.particlesPerDimension.x * 
+            parameters.particlesPerDimension.y * 
+			parameters.particlesPerDimension.z + nbRigidParticles << std::endl;
+		file << "property float x" << std::endl;
+		file << "property float y" << std::endl;
+		file << "property float z" << std::endl;
+		file << "end_header" << std::endl;
+
+		for (auto& p : particles) {
+            if (p.position.z() < 0) {
+                std::cout << "Negative z-coordinate, " << p.ID << std::endl;
+            }
+
+            if (p.isFluid) {
+                file << p.position.x() * scaleFactor << " " << 
+                        p.position.z() * scaleFactor << " " << 
+                        p.position.y() * scaleFactor << std::endl;
+            }
+		}
+
+        for (auto& body : solver.getRigidBodies()) {
+			for (auto& p : body.getOuterParticles()) {
+				file << p.position.x() * scaleFactor << " " << 
+						p.position.z() * scaleFactor << " " << 
+						p.position.y() * scaleFactor << std::endl;
+			}
+		}
+
+		file.close();
+
+        int barWidth = 50;
+        float progress = static_cast<float>(i + 1) / nbFrames;
+        std::cout << "[";
+        int pos = static_cast<int>(barWidth * progress);
+
+        for (int j = 0; j < barWidth; ++j) {
+            if (j < pos) std::cout << "=";
+            else if (j == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+
+        std::cout << "] " << std::setw(3) << static_cast<int>(progress * 100.0) << " %\r";
+        std::cout.flush();
+	}
+
+    std::cout << "\nExported " << nbFrames << " frames to .ply files." << std::endl;
 }

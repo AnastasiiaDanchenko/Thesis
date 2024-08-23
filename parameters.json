@@ -36,7 +36,7 @@
     },
     "simulation type": 1,
     "slicing plane": 380,
-    "body type": "cuboid",
+    "body type": "cubes",
     "rigid bodies": [
       {
         "type": "cubes",

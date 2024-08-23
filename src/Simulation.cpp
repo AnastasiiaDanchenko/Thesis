@@ -48,7 +48,8 @@ void Initialization(Solver& solver, int simulationCode) {
 		}
 		else if (parameters.rigidBodyType == "cuboid") {
 			solver.initRigidCuboid();
-		} else {
+		} 
+		else {
 			solver.addRigidBody(solver.sampleOBJ());
 		}
 	}
