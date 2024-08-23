@@ -73,8 +73,9 @@ public:
 
 	// Rigid bodies kinematics
 	void initRigidCube();
+	void initRigidCuboid();
+	void initRigidCylinder();
 	void addRigidBody(std::vector < std::vector<Particle>> body);
-	void boundaryToRigidForces();
 	std::vector <std::vector<Particle>> sampleOBJ();
 	std::vector<RigidBody>& getRigidBodies() { return rigidBodies; }
 };

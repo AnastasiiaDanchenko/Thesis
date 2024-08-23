@@ -1000,13 +1000,97 @@ void Solver::initRigidCube() {
     std::cout << rigidBodies.size() << " rigid bodies initialized." << std::endl;
 }
 
+void Solver::initRigidCuboid() {
+    int depth = 3, width = 3, height = 15;
+
+	std::vector<Particle> body, contour;
+
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			for (int k = 0; k < depth; k++) {
+				Particle p;
+
+				p.position = Eigen::Vector3d(
+					i * parameters.spacing + parameters.windowSize.width / 2,
+					j * parameters.spacing + 2 * parameters.windowSize.height / 3,
+					k * parameters.spacing + parameters.windowSize.depth / 4
+				);
+				p.isFluid = false;
+				p.isRigid = true;
+				body.push_back(p);
+
+				if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
+					contour.push_back(p);
+				}
+			}
+		}
+	}
+
+	RigidBody newBody(body, contour, parameters.rigidBody.density);
+	newBody.discardInnerParticles();
+
+	this->rigidBodies.push_back(newBody);
+}
+
+
+void Solver::initRigidCylinder() {
+    double r = parameters.windowSize.depth / 10;
+    double width = parameters.windowSize.width / 2;
+    double height = 2 * parameters.windowSize.height / 3;
+    double depth = parameters.windowSize.depth / 4;
+
+    int numberOfParticlesInLayer = 32;
+    int numberOfLayers = 10;
+    double angle = 2 * M_PI / numberOfParticlesInLayer;
+
+    std::vector<Particle> body, contour;
+    
+    // outer circle particles
+    for (int i = 0; i < numberOfParticlesInLayer; i++) {
+        for (int j = 0; j < numberOfLayers; j++) {
+            Particle p;
+            p.position = Eigen::Vector3d(
+                r * cos(angle * i) + width, 
+                j * parameters.spacing + height, 
+                r * sin(angle * i) + depth
+            );
+            p.isFluid = false;
+            p.isRigid = true;
+            body.push_back(p);
+            contour.push_back(p);
+        }
+    }
+
+    // bottom circle particles
+    for (int i = -r / parameters.spacing; i < r / parameters.spacing; i++) {
+        for (int j = -r / parameters.spacing; j < r / parameters.spacing; j++) {
+            if (i * i + j * j < r * r / parameters.spacing / parameters.spacing) {
+                Particle p;
+                p.position = Eigen::Vector3d(
+                    i * parameters.spacing + width,
+                    height,
+                    j * parameters.spacing + depth
+                );
+                p.isFluid = false;
+                p.isRigid = true;
+                body.push_back(p);
+                contour.push_back(p);
+            }
+        }
+    }
+
+    RigidBody newBody(body, contour, parameters.rigidBody.density);
+    newBody.discardInnerParticles();
+
+    this->rigidBodies.push_back(newBody);
+}
+
 std::vector<std::vector<Particle>> Solver::sampleOBJ() {
     objl::Loader loader;
     bool loadout = loader.LoadFile(parameters.rigidBody.pathToFile);
 
     if (!loadout) {
 		std::cerr << "Error loading file. Returning empty vector." << std::endl;
-		// return empty vector
         return std::vector <std::vector<Particle>>();
 	}
 

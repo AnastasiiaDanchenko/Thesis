@@ -21,9 +21,9 @@
   },
 
   "3D": {
-    "window": [800, 600, 500],
+    "window": [ 800, 600, 800 ],
     "spacing": 20,
-    "particles nb": [37, 15, 10],
+    "particles nb": [ 37, 15, 17 ],
     "timestep": 0.05,
     "stiffness": 1000000000.0,
     "viscosity": 15,
@@ -35,18 +35,28 @@
       "cohesion": 0.000001
     },
     "simulation type": 1,
-    "slicing plane": 200,
-    "body type":  "cubes",
-    "rigid bodies" : [
+    "slicing plane": 380,
+    "body type": "cuboid",
+    "rigid bodies": [
       {
         "type": "cubes",
         "density": 1000.0,
-        "path":  ""
+        "path": ""
       },
       {
         "type": "bunny",
         "density": 300.0,
         "path": "C:/dev/MasterProject/Thesis/meshes/stanford-bunny_low_poly.obj"
+      },
+      {
+        "type": "cuboid",
+        "density": 900.0,
+        "path": ""
+      },
+      {
+        "type": "cylinder",
+        "density": 1500.0,
+        "path": ""
       }
     ]
   }

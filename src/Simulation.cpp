@@ -42,6 +42,12 @@ void Initialization(Solver& solver, int simulationCode) {
 		solver.initFluid();
 		if (parameters.rigidBodyType == "cubes") {
 			solver.initRigidCube();
+		}
+		else if (parameters.rigidBodyType == "cylinder") {
+			solver.initRigidCylinder();
+		}
+		else if (parameters.rigidBodyType == "cuboid") {
+			solver.initRigidCuboid();
 		} else {
 			solver.addRigidBody(solver.sampleOBJ());
 		}
