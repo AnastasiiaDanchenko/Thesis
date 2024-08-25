@@ -23,7 +23,7 @@
   "3D": {
     "window": [ 800, 600, 800 ],
     "spacing": 20,
-    "particles nb": [ 37, 15, 17 ],
+    "particles nb": [ 30, 15, 17 ],
     "timestep": 0.05,
     "stiffness": 1000000000.0,
     "viscosity": 15,
@@ -34,9 +34,9 @@
       "enabled": true,
       "cohesion": 0.000001
     },
-    "simulation type": 1,
+    "simulation type": 0,
     "slicing plane": 380,
-    "body type": "cubes",
+    "body type": "cuboid",
     "rigid bodies": [
       {
         "type": "cubes",

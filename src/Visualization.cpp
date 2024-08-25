@@ -236,10 +236,12 @@ void Visualize(Solver& solver) {
     );
 
     Grid grid(parameters.spacing * 2);
+    int count = 0;
 
     // event loop
-    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
+    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0 && count < 100) {
         if (isSimulationRunning) {
+            count += 1;
             SimulationIISPH(solver, parameters.simulationType);
         }
 
@@ -364,6 +366,8 @@ void Visualize(Solver& solver) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    std:: cout << count << std::endl;
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -806,7 +810,7 @@ void VisualizeGhosts(Solver& solver) {
 }
 
 void ExportPLY(Solver& solver) {
-    int nbFrames = 100;
+    int nbFrames = 1000;
     Grid grid(parameters.spacing * 2);
 
     std::cout << "Exporting simulation frames to .ply files..." << std::endl;
@@ -831,7 +835,7 @@ void ExportPLY(Solver& solver) {
 
         file << "ply" << std::endl;
 		file << "format ascii 1.0" << std::endl;
-		file << "element vertex " << //particles.size() + nbrigidParticles << std::endl;
+		file << "element vertex " << //particles.size() + nbRigidParticles << std::endl;
             parameters.particlesPerDimension.x * 
             parameters.particlesPerDimension.y * 
 			parameters.particlesPerDimension.z + nbRigidParticles << std::endl;
@@ -841,10 +845,6 @@ void ExportPLY(Solver& solver) {
 		file << "end_header" << std::endl;
 
 		for (auto& p : particles) {
-            if (p.position.z() < 0) {
-                std::cout << "Negative z-coordinate, " << p.ID << std::endl;
-            }
-
             if (p.isFluid) {
                 file << p.position.x() * scaleFactor << " " << 
                         p.position.z() * scaleFactor << " " << 
@@ -858,7 +858,7 @@ void ExportPLY(Solver& solver) {
 						p.position.z() * scaleFactor << " " << 
 						p.position.y() * scaleFactor << std::endl;
 			}
-		}
+        }
 
 		file.close();
 

@@ -1,7 +1,34 @@
 import bpy
 import os
 
-def import_ply(nbFrames=100):
+def add_particle_spheres(object_name="Fluid", sphere_radius=0.1):  
+    obj = bpy.data.objects.get(object_name)
+    if obj is None:
+        print(f"Object '{object_name}' not found.")
+        return
+
+    sphere_collection = bpy.data.collections.new("Particle_Spheres")
+    bpy.context.scene.collection.children.link(sphere_collection)
+
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=sphere_radius, segments=16, ring_count=8)
+    base_sphere = bpy.context.object
+    base_sphere.name = "Particle_Sphere"
+
+    spheres = []
+    for vertex in obj.data.vertices:
+        sphere = base_sphere.copy()
+        sphere.data = base_sphere.data.copy()
+        sphere.name = f"Particle_{vertex.index}"
+
+        sphere_collection.objects.link(sphere)
+        sphere.location = vertex.co
+        sphere.parent = obj
+        spheres.append(sphere)
+
+    bpy.data.objects.remove(base_sphere, do_unlink=True)
+
+
+def import_ply(object_name="Fluid", nbFrames=100):
     directory = "C:\\dev\\MasterProject\\Thesis\\output\\blender_frames"
 
     firstFrame = os.path.join(directory, "0.ply")
@@ -11,13 +38,9 @@ def import_ply(nbFrames=100):
 
     bpy.ops.import_mesh.ply(filepath=firstFrame)
     obj = bpy.context.selected_objects[0]
-    obj.name = "Fluid"
-    # obj.keyframe_insert(data_path="location", frame=1)
-
-    # Ensure the object is active
+    obj.name = object_name
     bpy.context.view_layer.objects.active = obj
 
-    # Create a shape key for the base frame (rest position)
     bpy.ops.object.shape_key_add(from_mix=False)
     obj.data.shape_keys.key_blocks[-1].name = "Base"
 
@@ -28,55 +51,30 @@ def import_ply(nbFrames=100):
             print(f"File {filename} does not exist")
             continue
 
-        # bpy.ops.import_mesh.ply(filepath=filename)
-        
-        # # Set the imported object to the current frame
-        # obj = bpy.context.selected_objects[0]
-        # obj.name = f"frame_{frame}"
-        # obj.animation_data_create()
-        # obj.animation_data.action = bpy.data.actions.new(name="Action")
-        # obj.location = (0, 0, 0)
-        
-        # # Insert keyframes to show/hide the object at the correct frame
-        # obj.hide_viewport = True
-        # obj.keyframe_insert(data_path="hide_viewport", frame=frame)
-        # obj.hide_viewport = False
-        # obj.keyframe_insert(data_path="hide_viewport", frame=frame + 1)
-
         with open(filename, 'r') as file:
             lines = file.readlines()
 
         vertex_data_start = lines.index("end_header\n") + 1
         vertex_positions = [list(map(float, line.strip().split())) for line in lines[vertex_data_start:]]
 
-        # Ensure the mesh has the correct number of vertices
         if len(vertex_positions) != len(obj.data.vertices):
             raise ValueError(f"Frame {frame} has a different number of vertices than the initial frame!")
-
-        # # Update the mesh vertices
-        # for i, vertex in enumerate(obj.data.vertices):
-        #     vertex.co.x = vertex_positions[i][0]
-        #     vertex.co.y = vertex_positions[i][1]
-        #     vertex.co.z = vertex_positions[i][2]
-
-        # # Insert keyframes to animate vertex positions
-        # obj.data.update()
-        # obj.keyframe_insert(data_path="data.vertices[:].co", frame=frame)
-
-        # Create a new shape key for this frame
-        bpy.ops.object.shape_key_add(from_mix=False)
+        
+        bpy.ops.object.shape_key_add(from_mix=True)
         key_block = obj.data.shape_keys.key_blocks[-1]
         key_block.name = f"Frame_{frame}"
 
-        # Update the mesh vertices for the shape key
         for i, vertex in enumerate(obj.data.vertices):
             key_block.data[i].co = vertex_positions[i]
 
-        # Insert keyframe for shape key value
         key_block.value = 0.0
         key_block.keyframe_insert(data_path="value", frame=frame-1)
         key_block.value = 1.0
         key_block.keyframe_insert(data_path="value", frame=frame)
+        key_block.value = 0.0
+        key_block.keyframe_insert(data_path="value", frame=frame+1)
 
 if __name__ == "__main__":
-    import_ply(100)
+    object_name = "Dam Break"
+    import_ply(object_name, 100)
+    add_particle_spheres(object_name=object_name, sphere_radius=0.1)
