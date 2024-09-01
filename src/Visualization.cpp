@@ -236,13 +236,11 @@ void Visualize(Solver& solver) {
     );
 
     Grid grid(parameters.spacing * 2);
-    int count = 0;
 
     // event loop
-    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0 && count < 100) {
+    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            count += 1;
-            SimulationIISPH(solver, parameters.simulationType);
+            SimulationIISPH(solver);
         }
 
         clearBuffers();
@@ -354,9 +352,10 @@ void Visualize(Solver& solver) {
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
             particles.clear();
-            Initialization(solver, parameters.simulationType);
+            solver.getRigidBodies().clear();
+            Initialization(solver);
         }
-        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(solver, parameters.simulationType); }
+        if (ImGui::Button("Move forward one time step")) { SimulationIISPH(solver); }
         if (ImGui::Button("Start moving boundary")) { solver.initMovingBoundary(); }
         ImGui::End();
 
@@ -366,8 +365,6 @@ void Visualize(Solver& solver) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    std:: cout << count << std::endl;
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -704,7 +701,7 @@ void VisualizeGhosts(Solver& solver) {
     // event loop
     while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         if (isSimulationRunning) {
-            SimulationIISPH(solver, parameters.simulationType);
+            SimulationIISPH(solver);
         }
 
         clearBuffers();
@@ -787,10 +784,10 @@ void VisualizeGhosts(Solver& solver) {
         if (ImGui::Button("Reset")) {
             particles.clear();
 			ghostParticles.clear();
-            Initialization(solver, parameters.simulationType);
+            Initialization(solver);
         }
         if (ImGui::Button("Move forward one time step")) {
-            SimulationIISPH(solver, parameters.simulationType);
+            SimulationIISPH(solver);
         }
         ImGui::End();
 
@@ -810,7 +807,7 @@ void VisualizeGhosts(Solver& solver) {
 }
 
 void ExportPLY(Solver& solver) {
-    int nbFrames = 1000;
+    int nbFrames = 5000;
     Grid grid(parameters.spacing * 2);
 
     std::cout << "Exporting simulation frames to .ply files..." << std::endl;
@@ -821,11 +818,11 @@ void ExportPLY(Solver& solver) {
 	}
 
     for (int i = 0; i < nbFrames; i++) {
-		SimulationIISPH(solver, parameters.simulationType);
+		SimulationIISPH(solver);
 
         double scaleFactor = 0.01;
 		
-        std::string fileName = "output/blender_frames/" + std::to_string(i) + ".ply";
+        std::string fileName = "output/blender_frames/damBreak_" + std::to_string(i) + ".ply";
         std::ofstream file(fileName);
 
         if (!file.is_open()) {

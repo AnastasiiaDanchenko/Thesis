@@ -25,6 +25,8 @@ public:
 	RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, Eigen::Vector3d velocity, 
 		Eigen::Matrix3d rotation, Eigen::Vector3d angularMomentum, Eigen::Matrix3d inertiaTensor, double mass);
 
+	void initializeRigidBody(std::vector<Particle> particles, double density);
+	void initializeRigidBody(std::vector<Particle> inner, std::vector<Particle> outer, double bodyDensity);
 	void discardInnerParticles();
 
 	void computeParticleQuantities();

@@ -25,8 +25,8 @@ public:
 	void virtual computeDensity();
 	void virtual computeSurface();
 	void virtual predictVelocity();
-	void virtual computeDensityError();
-	void virtual computeLaplacian();
+	void virtual computeSourceTerm();
+	void virtual computeDiagonalElement();
 	void virtual compressionConvergence();
 	void advectParticles();
 
@@ -59,8 +59,8 @@ public:
 	void boundaryMassUpdate() override;
 	void computeDensity() override;
 	void predictVelocity() override;
-	void computeDensityError() override;
-	void computeLaplacian() override;
+	void computeSourceTerm() override;
+	void computeDiagonalElement() override;
 	void compressionConvergence() override;
 
 	void initMovingBoundary() override;
@@ -78,4 +78,7 @@ public:
 	void addRigidBody(std::vector < std::vector<Particle>> body);
 	std::vector <std::vector<Particle>> sampleOBJ();
 	std::vector<RigidBody>& getRigidBodies() { return rigidBodies; }
+
+	// Rigid bodies dynamics
+	void computeArtificialDensity();
 };

@@ -58,9 +58,9 @@ int main() {
     }
     else if (parameters.dimensions == 3) {
 		Solver solver;
-        Initialization(solver, parameters.simulationType);
-        //Visualize(solver);
-        ExportPLY(solver);
+        Initialization(solver);
+        Visualize(solver);
+        //ExportPLY(solver);
 	}
 
     return 0;

@@ -19,7 +19,8 @@ Particle::Particle() :
     sourceTerm(0.0f),
     diagonal(0.0f),
     pressureAcceleration(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
-	relativePosition(Eigen::Vector3d(0.0f, 0.0f, 0.0f)) {}
+	relativePosition(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
+	artificialVolume(0) {}
 
 Particle2D::Particle2D() :
 	position(Eigen::Vector2d(0.0, 0.0)),

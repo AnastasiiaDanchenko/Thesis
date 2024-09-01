@@ -3,6 +3,8 @@
 
 #include "Parameters.h"
 
+class RigidBody; // Forward declaration
+
 class Particle {
 public:
     Eigen::Vector3d position;
@@ -29,7 +31,9 @@ public:
     Eigen::Vector3d pressureAcceleration;
 
 	// Rigid body
+    RigidBody* parentBody;
 	Eigen::Vector3d relativePosition;
+    double artificialVolume;
 };
 
 class Particle2D {

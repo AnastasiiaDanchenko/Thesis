@@ -198,7 +198,7 @@ void Solver2D::predictVelocity() {
     }
 }
 
-void Solver2D::computeDensityError() {
+void Solver2D::computeSourceTerm() {
 #pragma omp parallel for
     for (int i = 0; i < particles2D.size(); i++) {
         Particle2D& p = particles2D[i];
@@ -220,7 +220,7 @@ void Solver2D::computeDensityError() {
     }
 }
 
-void Solver2D::computeLaplacian() {
+void Solver2D::computeDiagonalElement() {
 #pragma omp parallel for
     for (int i = 0; i < particles2D.size(); i++) {
         Particle2D& p = particles2D[i];
@@ -769,7 +769,7 @@ void Solver::predictVelocity() {
     }
 }
 
-void Solver::computeDensityError() {
+void Solver::computeSourceTerm() {
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -792,7 +792,7 @@ void Solver::computeDensityError() {
     }
 }
 
-void Solver::computeLaplacian() {
+void Solver::computeDiagonalElement() {
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -845,7 +845,7 @@ void Solver::compressionConvergence() {
         && parameters.nbIterations < 100) {
         densityError = 0.0;
 
-        // first loop: compute pressure acceleration
+        // first step: compute fluid pressure acceleration
 #pragma omp parallel for
         for (int i = 0; i < particles.size(); i++) {
             Particle& p = particles[i];
@@ -872,6 +872,12 @@ void Solver::compressionConvergence() {
             p.pressureAcceleration = acceleration;
         }
 
+        // second step: update rigid body forces
+        for (auto& body : getRigidBodies()) {
+            body.computeParticleQuantities();
+        }
+
+        // last step: compute fluid pressure and density error
 #pragma omp parallel for reduction(+:densityError)
         for (int i = 0; i < particles.size(); i++) {
             Particle& p = particles[i];
@@ -1004,6 +1010,7 @@ void Solver::initRigidCuboid() {
     int depth = 3, width = 3, height = 15;
 
 	std::vector<Particle> body, contour;
+    RigidBody newBody;
 
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -1017,6 +1024,7 @@ void Solver::initRigidCuboid() {
 				);
 				p.isFluid = false;
 				p.isRigid = true;
+                p.parentBody = &newBody;
 				body.push_back(p);
 
 				if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
@@ -1026,8 +1034,9 @@ void Solver::initRigidCuboid() {
 		}
 	}
 
-	RigidBody newBody(body, contour, parameters.rigidBody.density);
-	newBody.discardInnerParticles();
+	/*RigidBody newBody(body, contour, parameters.rigidBody.density);*/
+	newBody.initializeRigidBody(body, contour, parameters.rigidBody.density);
+    newBody.discardInnerParticles();
 
 	this->rigidBodies.push_back(newBody);
 }
@@ -1139,4 +1148,28 @@ void Solver::addRigidBody(std::vector<std::vector<Particle>> body) {
 	RigidBody newBody(body[0], body[1], parameters.rigidBody.density);
 	newBody.discardInnerParticles();
 	this->rigidBodies.push_back(newBody);
+}
+
+void Solver::computeArtificialDensity() {
+    for (auto& body : rigidBodies) {
+        for (auto& particle : body.getOuterParticles()) {
+            double restVolume = 0, density = 0;
+            double gamma = 0.7, restDensity = 1;
+
+            for (auto& neighbor : particle.neighbors) {
+                if (particle.parentBody == neighbor->parentBody) {
+					restVolume += CubicSplineKernel(particle.position - neighbor->position);
+				}
+            }
+            restVolume = gamma / restVolume;
+
+            for (auto& neighbor : particle.neighbors) {
+                if (!neighbor->isFluid) {
+                    density += restDensity * restVolume * CubicSplineKernel(particle.position - neighbor->position);
+                }
+            }
+
+            particle.artificialVolume = restDensity / density * restVolume;
+        }
+    }
 }

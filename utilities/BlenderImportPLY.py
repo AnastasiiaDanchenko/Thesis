@@ -1,32 +1,77 @@
 import bpy
 import os
 
-def add_particle_spheres(object_name="Fluid", sphere_radius=0.1):  
+import bpy
+
+def create_and_animate_spheres(object_name, sphere_radius=0.1):
+    # Get the mesh object containing the vertices
     obj = bpy.data.objects.get(object_name)
     if obj is None:
         print(f"Object '{object_name}' not found.")
         return
-
+    
+    # Ensure the object is a mesh
+    if obj.type != 'MESH':
+        print(f"Object '{object_name}' is not a mesh.")
+        return
+    
+    # Create a new collection for the spheres
     sphere_collection = bpy.data.collections.new("Particle_Spheres")
     bpy.context.scene.collection.children.link(sphere_collection)
 
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=sphere_radius, segments=16, ring_count=8)
-    base_sphere = bpy.context.object
-    base_sphere.name = "Particle_Sphere"
-
+    # Store spheres and vertex index mapping
     spheres = []
+    vertex_to_sphere = {}
+
+    # Create spheres and position them at the vertices
     for vertex in obj.data.vertices:
-        sphere = base_sphere.copy()
-        sphere.data = base_sphere.data.copy()
-        sphere.name = f"Particle_{vertex.index}"
-
+        # Create a new sphere
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=sphere_radius, segments=16, ring_count=8)
+        sphere = bpy.context.object
+        sphere.name = f"Particle_Sphere_{vertex.index}"
+        
+        # Link the sphere to the collection
         sphere_collection.objects.link(sphere)
-        sphere.location = vertex.co
-        sphere.parent = obj
+        bpy.context.collection.objects.unlink(sphere)
+        
+        # Position the sphere at the vertex location
+        sphere.location = obj.matrix_world @ vertex.co
+        
+        # Store the sphere and vertex index mapping
         spheres.append(sphere)
+        vertex_to_sphere[vertex.index] = sphere
 
-    bpy.data.objects.remove(base_sphere, do_unlink=True)
+    # Add vertex groups to the mesh object
+    mesh = obj.data
+    for vertex_index in vertex_to_sphere.keys():
+        group_name = f"VertexGroup_{vertex_index}"
+        if group_name not in mesh.vertex_groups:
+            mesh.vertex_groups.new(name=group_name)
+        group = mesh.vertex_groups[group_name]
+        group.add([vertex_index], 1.0, 'REPLACE')
 
+    # Create shape keys for animation
+    if not mesh.shape_keys:
+        bpy.ops.object.shape_key_add(from_mix=False)
+    base_key = mesh.shape_keys.key_blocks[0]
+    
+    # Ensure there is a shape key for each frame
+    for i in range(1, 101):  # Example: 100 frames
+        if i >= len(mesh.shape_keys.key_blocks):
+            bpy.ops.object.shape_key_add(from_mix=False)
+        shape_key = mesh.shape_keys.key_blocks[i]
+        shape_key.name = f"Frame_{i}"
+
+        # Set the influence of the shape key to the corresponding sphere
+        for vertex_index, sphere in vertex_to_sphere.items():
+            group = mesh.vertex_groups.get(f"VertexGroup_{vertex_index}")
+            if group:
+                group.add([vertex_index], shape_key.value, 'REPLACE')
+
+    # Set the initial frame to ensure proper animation
+    bpy.context.scene.frame_set(1)
+
+    print(f"Created and animated {len(spheres)} spheres for particles.")
 
 def import_ply(object_name="Fluid", nbFrames=100):
     directory = "C:\\dev\\MasterProject\\Thesis\\output\\blender_frames"
@@ -74,7 +119,57 @@ def import_ply(object_name="Fluid", nbFrames=100):
         key_block.value = 0.0
         key_block.keyframe_insert(data_path="value", frame=frame+1)
 
+def import_ply_sequence(nbFrames=100):
+    directory = "C:\\dev\\MasterProject\\Thesis\\output\\blender_frames"
+
+    imported_objects = []
+
+    for frame in range(nbFrames):
+        filename = os.path.join(directory, f"{frame}_r.ply")
+        
+        if not os.path.exists(filename):
+            print(f"File {filename} does not exist")
+            continue
+        
+        # Import the PLY file
+        bpy.ops.import_mesh.ply(filepath=filename)
+        obj = bpy.context.selected_objects[0]
+        obj.name = f"{object_name}_{frame}"
+        
+        # Hide the object by default
+        obj.hide_viewport = True
+        obj.hide_render = True
+        obj.keyframe_insert(data_path="hide_viewport", frame=frame-1 if frame > 0 else 0)
+        obj.keyframe_insert(data_path="hide_render", frame=frame-1 if frame > 0 else 0)
+        
+        # Unhide the object on its corresponding frame
+        obj.hide_viewport = False
+        obj.hide_render = False
+        obj.keyframe_insert(data_path="hide_viewport", frame=frame)
+        obj.keyframe_insert(data_path="hide_render", frame=frame)
+        
+        # Hide it again immediately after (next frame)
+        obj.hide_viewport = True
+        obj.hide_render = True
+        obj.keyframe_insert(data_path="hide_viewport", frame=frame+1)
+        obj.keyframe_insert(data_path="hide_render", frame=frame+1)
+
+        imported_objects.append(obj)
+
+    # Optionally, you can parent all these objects to an empty or another object for easier manipulation
+    if imported_objects:
+        bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 0))
+        parent_obj = bpy.context.object
+        parent_obj.name = f"{object_name}_Controller"
+        
+        for obj in imported_objects:
+            obj.parent = parent_obj
+
+
 if __name__ == "__main__":
     object_name = "Dam Break"
-    import_ply(object_name, 100)
-    add_particle_spheres(object_name=object_name, sphere_radius=0.1)
+    frames_num = 100
+    import_ply_sequence(nbFrames=frames_num)
+    # import_ply(object_name, frames_num)
+    # create_and_animate_spheres(object_name="Fluid", sphere_radius=0.1)
+

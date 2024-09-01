@@ -7,37 +7,37 @@ void Simulation(Solver& solver) {
 	solver.updateParticles();
 }
 
-void SimulationIISPH(Solver& solver, int simulationCode) {
+void SimulationIISPH(Solver& solver) {
 	solver.neighborSearch();
 	solver.boundaryMassUpdate();
 	solver.computeDensity();
+	solver.computeArtificialDensity();
 	solver.predictVelocity();
-	solver.computeDensityError();
-	solver.computeLaplacian();
+	solver.computeSourceTerm();
+	solver.computeDiagonalElement();
 	solver.compressionConvergence();
 	solver.updateParticles();
 
-	if (simulationCode == 0) {
+	if (parameters.simulationType == 0) {
 		solver.neighborSearchGhosts();
 		solver.updateGhosts();
 	}
-	else if (simulationCode == 1) {
+	else if (parameters.simulationType == 1) {
 		for (auto& body : solver.getRigidBodies()) {
-			body.computeParticleQuantities();
 			body.updateBodyQuantities();
 			body.updateParticles();
 		}
 	}
 }
 
-void Initialization(Solver& solver, int simulationCode) {
-	if (simulationCode == 0) {
+void Initialization(Solver& solver) {
+	if (parameters.simulationType == 0) {
 		solver.initBoundaries();
 		solver.initFluid();
 		solver.initGhostFluid();
 		solver.initGhostBoundary();
 	}
-	else if (simulationCode == 1) {
+	else if (parameters.simulationType == 1) {
 		solver.initBoundaries();
 		solver.initFluid();
 		if (parameters.rigidBodyType == "cubes") {
@@ -85,8 +85,8 @@ void RotatingBoundaryIISPH2D(Solver2D& solver) {
 	solver.computeDensity();
 	solver.computeSurface();
 	solver.predictVelocity();
-	solver.computeDensityError();
-	solver.computeLaplacian();
+	solver.computeSourceTerm();
+	solver.computeDiagonalElement();
 	solver.compressionConvergence();
 	solver.rotateBoundary();
 }
@@ -97,8 +97,8 @@ void SimulationIISPH2D(Solver2D& solver) {
 	solver.computeDensity();
 	solver.computeSurface();
 	solver.predictVelocity();
-	solver.computeDensityError();
-	solver.computeLaplacian();
+	solver.computeSourceTerm();
+	solver.computeDiagonalElement();
 	solver.compressionConvergence();
 	solver.advectParticles();
 }
@@ -109,8 +109,8 @@ void MovingBoundaryIISPH2D(Solver2D& solver) {
 	solver.computeDensity();
 	solver.computeSurface();
 	solver.predictVelocity();
-	solver.computeDensityError();
-	solver.computeLaplacian();
+	solver.computeSourceTerm();
+	solver.computeDiagonalElement();
 	solver.compressionConvergence();
 	solver.advectParticles();
 }

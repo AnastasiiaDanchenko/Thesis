@@ -12,6 +12,31 @@ Eigen::Matrix3d vectorToMatrix(Eigen::Vector3d& vector) {
 RigidBody::RigidBody() {
 }
 
+void RigidBody::initializeRigidBody(std::vector<Particle> particles, double bodyDensity) {
+	this->innerParticles = particles;
+	this->density = bodyDensity;
+	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
+
+	this->velocityCM = Eigen::Vector3d::Zero();
+	this->positionCM = Eigen::Vector3d::Zero();
+	this->angularVelocity = Eigen::Vector3d::Zero();
+	this->invInertiaTensor = Eigen::Matrix3d::Identity();
+	this->invInitialInertiaTensor = Eigen::Matrix3d::Zero();
+	this->rotationMatrix = Eigen::Matrix3d::Identity();
+
+	for (auto& p : innerParticles) {
+		this->positionCM += p.position * p.mass;
+	}
+	this->positionCM /= mass;
+
+	for (auto& p : innerParticles) {
+		Eigen::Vector3d r = p.position - positionCM;
+		this->invInertiaTensor -= p.mass * r * r.transpose();
+	}
+	this->invInertiaTensor = this->invInertiaTensor.inverse();
+	this->invInitialInertiaTensor = this->invInertiaTensor;
+}
+
 RigidBody::RigidBody(std::vector<Particle> particles, double bodyDensity) {
 	this->innerParticles = particles;
 	this->density = bodyDensity;
@@ -32,6 +57,36 @@ RigidBody::RigidBody(std::vector<Particle> particles, double bodyDensity) {
 	for (auto& p : innerParticles) {
 		Eigen::Vector3d r = p.position - positionCM;
 		this->invInertiaTensor -= p.mass * r * r.transpose();
+	}
+	this->invInertiaTensor = this->invInertiaTensor.inverse();
+	this->invInitialInertiaTensor = this->invInertiaTensor;
+}
+
+void RigidBody::initializeRigidBody(std::vector<Particle> inner, std::vector<Particle> outer, double bodyDensity) {
+	this->innerParticles = inner;
+	this->outerParticles = outer;
+	this->density = bodyDensity;
+
+	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
+
+	this->velocityCM = Eigen::Vector3d::Zero();
+	this->positionCM = Eigen::Vector3d::Zero();
+	this->angularVelocity = Eigen::Vector3d::Zero();
+	this->invInertiaTensor = Eigen::Matrix3d::Identity();
+	this->invInitialInertiaTensor = Eigen::Matrix3d::Zero();
+	this->rotationMatrix = Eigen::Matrix3d::Identity();
+
+	for (auto& p : innerParticles) {
+		this->positionCM += p.position * p.mass;
+	}
+	this->positionCM /= innerParticles.size() * parameters.restDensity * pow(parameters.spacing, 3);
+
+	for (auto& p : innerParticles) {
+		p.relativePosition = p.position - positionCM;
+		this->invInertiaTensor -= p.mass * vectorToMatrix(p.relativePosition) * vectorToMatrix(p.relativePosition);
+	}
+	for (auto& p : outerParticles) {
+		p.relativePosition = p.position - positionCM;
 	}
 	this->invInertiaTensor = this->invInertiaTensor.inverse();
 	this->invInitialInertiaTensor = this->invInertiaTensor;

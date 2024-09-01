@@ -34,7 +34,7 @@
       "enabled": true,
       "cohesion": 0.000001
     },
-    "simulation type": 0,
+    "simulation type": 1,
     "slicing plane": 380,
     "body type": "cuboid",
     "rigid bodies": [
