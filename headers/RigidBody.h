@@ -33,8 +33,13 @@ public:
 	void updateBodyQuantities();
 	void updateParticles();
 
-	void setOuterParticles(std::vector<Particle> particles) { outerParticles = particles; }
+	void setOuterParticles(std::vector<Particle> particles) { this->outerParticles = particles; }
+	void setConstantVelocity(Eigen::Vector3d velocity) { this->velocityCM = velocity; }
 
-	std::vector<Particle>& getOuterParticles() { return outerParticles; }
-	Eigen::Vector3d& getPositionCM() { return positionCM; }
+	std::vector<Particle>& getOuterParticles() { return this->outerParticles; }
+	Eigen::Vector3d& getPositionCM() { return this->positionCM; }
+	double getMass() { return this->mass; }
+	Eigen::Matrix3d getInvInertiaTensor() { return this->invInertiaTensor; }
+	Eigen::Vector3d getVelocityCM() { return this->velocityCM; }
+	Eigen::Vector3d getAngularVelocity() { return this->angularVelocity; }
 };

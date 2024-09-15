@@ -548,6 +548,7 @@ void Solver::initBoundaries() {
 
                     p.position = Eigen::Vector3d((i + 1) * parameters.spacing, (j + 1) * parameters.spacing, (k + 1) * parameters.spacing);
                     p.isFluid = false;
+                    
                     p.ID = particles.size();
                     parameters.boundaryTestID = p.ID;
 
@@ -709,6 +710,20 @@ void Solver::updateParticles() {
         }
     }
 
+    for (auto& body : rigidBodies) {
+		for (auto& p : body.getOuterParticles()) {
+            Eigen::Vector3d pressureGrad = Eigen::Vector3d::Zero();
+
+            for (auto& neighbor : p.neighbors) {
+                pressureGrad += neighbor->artificialVolume * neighbor->artificialDensity * (p.pressure / 
+                    pow(neighbor->artificialDensity, 2) + neighbor->pressure / pow(p.artificialDensity, 2)) *
+                    CubicSplineKernelGradient(p.position - neighbor->position);
+            }
+
+            p.pressureAcceleration = pressureGrad * p.artificialDensity;
+		}
+	}
+
     parameters.timeStep = (maxVelocity < std::numeric_limits<double>::epsilon()) ? parameters.maxTimeStep :
         std::min(parameters.maxTimeStep, 0.4 * parameters.spacing / maxVelocity);
 }
@@ -792,7 +807,80 @@ void Solver::computeSourceTerm() {
     }
 }
 
+void Solver::computeRigidBodySourceTerm() {
+    // map for rigid body particles' pressure gradients
+    std::unordered_map<int, Eigen::Vector3d> pressureGrads;
+
+    // map for linear and angular velocity sums per body
+    std::unordered_map<RigidBody*, std::vector<Eigen::Vector3d>> velocitiesPerBody;
+
+    for (auto& body : getRigidBodies()) {
+        Eigen::Vector3d linearVelocity = Eigen::Vector3d::Zero(), angularVelocity = Eigen::Vector3d::Zero();
+    
+        // first loop: compute velocity divergence and source term s_r
+		for (auto& particle : body.getOuterParticles()) {
+            double divergence = 0;
+
+			for (auto neighbor : particle.neighbors) {
+                if (neighbor->parentBody != particle.parentBody) {
+                    divergence += neighbor->artificialVolume * neighbor->artificialDensity * (particle.velocity - 
+                        neighbor->velocity).dot(CubicSplineKernelGradient(particle.position - neighbor->position));
+                }
+			}
+            divergence /= particle.artificialDensity;
+
+            particle.sourceTerm = (1 - particle.artificialDensity) / parameters.timeStep + 
+                particle.artificialDensity * divergence;
+		}
+
+        // second loop: compute right-hand side of source term (eq. 8)
+        for (auto& particle : body.getOuterParticles()) {
+            Eigen::Vector3d pressureGrad = Eigen::Vector3d::Zero();
+            
+            for (auto neighbor : particle.neighbors) {
+                if (neighbor->isFluid) continue;
+
+                pressureGrad += neighbor->artificialVolume * neighbor->artificialDensity * (particle.pressure / 
+                    pow(particle.artificialDensity, 2) + neighbor->pressure / pow(neighbor->artificialDensity, 2)) *
+					CubicSplineKernelGradient(particle.position - neighbor->position);
+
+            }
+            pressureGrad *= particle.artificialDensity;
+            pressureGrads[particle.ID] = pressureGrad;
+
+            linearVelocity -= parameters.timeStep / body.getMass() * particle.artificialVolume * pressureGrad;
+            angularVelocity -= parameters.timeStep * body.getInvInertiaTensor() * particle.artificialVolume * 
+				particle.relativePosition.cross(pressureGrad);
+		}
+
+		velocitiesPerBody[&body].push_back(linearVelocity);
+		velocitiesPerBody[&body].push_back(angularVelocity);
+    }
+
+    // third loop: update rigid particles' velocities
+    for (auto& body : getRigidBodies()) {
+		for (auto& particle : body.getOuterParticles()) {
+            double divergence = 0;
+			Eigen::Vector3d velocity = velocitiesPerBody[&body][0] + 
+                velocitiesPerBody[&body][1].cross(particle.relativePosition);
+
+            for (auto neighbor : particle.neighbors) {
+				if (!neighbor->isFluid) continue;
+
+				Eigen::Vector3d velocityNeighbor = velocitiesPerBody[neighbor->parentBody][0] + 
+					velocitiesPerBody[neighbor->parentBody][1].cross(neighbor->relativePosition);
+
+                divergence += neighbor->artificialVolume * neighbor->artificialDensity * (velocity - velocityNeighbor).
+					dot(CubicSplineKernelGradient(particle.position - neighbor->position));
+			}
+
+            particle.sourceTerm -= divergence;
+		}
+	}
+}
+
 void Solver::computeDiagonalElement() {
+    // first loop : Diagonal element A_f for fluid particles 
 #pragma omp parallel for
     for (int i = 0; i < particles.size(); i++) {
         Particle& p = particles[i];
@@ -834,6 +922,46 @@ void Solver::computeDiagonalElement() {
             p.pressure = 0.0;
         }
     }
+
+    // second loop : Diagonal elemnt b_r for rigid particles
+    for (auto& body : rigidBodies) {
+        for (auto& p : body.getOuterParticles()) {
+            Eigen::Vector3d pressureGrad = Eigen::Vector3d::Zero();
+
+            for (auto& neighbor : p.neighbors) {
+                if (neighbor->parentBody != p.parentBody) {
+                    pressureGrad += neighbor->artificialVolume * neighbor->artificialDensity / p.artificialDensity *
+                        CubicSplineKernelGradient(p.position - neighbor->position);
+                }
+            }
+
+            // ? : calculation with only one particle instead of accumulating over all particles of the rigid body
+            Eigen::Vector3d linearVelocity = -parameters.timeStep / body.getMass() * p.artificialVolume * pressureGrad;
+            Eigen::Vector3d angularVelocity = -parameters.timeStep * body.getInvInertiaTensor() * p.artificialVolume *
+				p.relativePosition.cross(pressureGrad);
+
+            Eigen::Vector3d velocity = linearVelocity + angularVelocity.cross(p.relativePosition);
+            double b = 0;
+
+            for (auto& neighbor : p.neighbors) {
+                if (neighbor->parentBody != p.parentBody && neighbor->parentBody != nullptr) {
+                    // skipped lines 6&7 as in appendix algorithm B.1 
+                    Eigen::Vector3d velocityNeighbor = neighbor->parentBody->getVelocityCM() + 
+						neighbor->parentBody->getAngularVelocity().cross(neighbor->relativePosition);
+
+					b += neighbor->artificialVolume * neighbor->artificialDensity * (velocity - velocityNeighbor).
+                        dot(CubicSplineKernelGradient(p.position - neighbor->position));
+                }
+            }
+
+            if (b > 0) {
+                p.diagonal = b;
+            }
+            else {
+                p.diagonal = 0;
+            }
+        }
+    }
 }
 
 void Solver::compressionConvergence() {
@@ -841,6 +969,7 @@ void Solver::compressionConvergence() {
     parameters.nbIterations = 0;
     parameters.firstErr = 0.0;
 
+    // TODO: add convergence criterion for rigid body particles
     while ((parameters.densityErr > parameters.errThreshold * parameters.restDensity || parameters.nbIterations < 2)
         && parameters.nbIterations < 100) {
         densityError = 0.0;
@@ -876,6 +1005,9 @@ void Solver::compressionConvergence() {
         for (auto& body : getRigidBodies()) {
             body.computeParticleQuantities();
         }
+
+        // third step: compute source term for rigid body particles
+        computeRigidBodySourceTerm();
 
         // last step: compute fluid pressure and density error
 #pragma omp parallel for reduction(+:densityError)
@@ -916,6 +1048,19 @@ void Solver::compressionConvergence() {
         if (parameters.nbIterations == 0) {
             parameters.firstErr = parameters.densityErr;
         }
+
+        // step: compute pressure of rigid body particles
+        for (auto& body : getRigidBodies()) {
+			for (auto& p : body.getOuterParticles()) {
+				if (p.diagonal != 0) {
+                    // TODO : coefficient beta_RJ_r should be scaled from nb of contacts, now it's 0.5
+					p.pressure = std::max(0.0, p.pressure + 0.5 / p.diagonal * p.sourceTerm);
+				}
+				else {
+					p.pressure = 0.0;
+				}
+			}
+		}
 
         parameters.nbIterations++;
     }
@@ -972,10 +1117,12 @@ void Solver::updateGhosts() {
 void Solver::initRigidCube() {
     int depth = 6;
 	int width = depth, height = depth;
-    std::vector<double> factors = { 0.2, 0.5, 1, 2 };
+    //std::vector<double> factors = { 0.2, 0.5, 1, 2 };
+    std::vector<double> factors = { 0.2, 0.5};
 
     for (int cubeNb = 0; cubeNb < factors.size(); cubeNb++) {
         std::vector<Particle> body, contour;
+        RigidBody newBody;
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
@@ -984,11 +1131,14 @@ void Solver::initRigidCube() {
 
                     p.position = Eigen::Vector3d(
                         (i + cubeNb * 10 + 3) * parameters.spacing,
-                        (j + parameters.windowSize.depth / parameters.spacing - 5) * parameters.spacing,
+                        //(j + parameters.windowSize.depth / parameters.spacing - 5) * parameters.spacing,
+                        (j + 10) * parameters.spacing,
                         (k + 4) * parameters.spacing
                     );
                     p.isFluid = false;
                     p.isRigid = true;
+                    p.ID = body.size();
+
                     body.push_back(p);
 
                     if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
@@ -998,8 +1148,50 @@ void Solver::initRigidCube() {
             }
         }
 
-        RigidBody newBody(body, contour, parameters.rigidBody.density * factors[cubeNb]);
+        newBody.initializeRigidBody(body, contour, parameters.rigidBody.density * factors[cubeNb]);
         newBody.discardInnerParticles();
+        if (cubeNb == 0) newBody.setConstantVelocity(Eigen::Vector3d(10, 0, 0));
+
+        this->rigidBodies.push_back(newBody);
+    }
+    std::cout << rigidBodies.size() << " rigid bodies initialized." << std::endl;
+}
+
+void Solver::initRigidCubesFalling() {
+    int depth = 6;
+    int width = depth, height = depth;
+    std::vector<double> factors = { 0.2, 0.5 };
+
+    for (int cubeNb = 0; cubeNb < factors.size(); cubeNb++) {
+        std::vector<Particle> body, contour;
+        RigidBody newBody;
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                for (int k = 0; k < depth; k++) {
+                    Particle p;
+
+                    p.position = Eigen::Vector3d(
+                        (i + cubeNb * 10 + 3) * parameters.spacing,
+                        (j + 10) * parameters.spacing,
+                        (k + 4) * parameters.spacing
+                    );
+                    p.isFluid = false;
+                    p.isRigid = true;
+                    p.ID = body.size();
+
+                    body.push_back(p);
+
+                    if (i == 0 || i == width - 1 || j == 0 || j == height - 1 || k == 0 || k == depth - 1) {
+                        contour.push_back(p);
+                    }
+                }
+            }
+        }
+
+        newBody.initializeRigidBody(body, contour, parameters.rigidBody.density * factors[cubeNb]);
+        newBody.discardInnerParticles();
+        if (cubeNb == 0) newBody.setConstantVelocity(Eigen::Vector3d(10, 0, 0));
 
         this->rigidBodies.push_back(newBody);
     }
@@ -1040,7 +1232,6 @@ void Solver::initRigidCuboid() {
 
 	this->rigidBodies.push_back(newBody);
 }
-
 
 void Solver::initRigidCylinder() {
     double r = parameters.windowSize.depth / 10;
@@ -1169,6 +1360,7 @@ void Solver::computeArtificialDensity() {
                 }
             }
 
+            particle.artificialDensity = density;
             particle.artificialVolume = restDensity / density * restVolume;
         }
     }

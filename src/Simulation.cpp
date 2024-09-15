@@ -38,10 +38,16 @@ void Initialization(Solver& solver) {
 		solver.initGhostBoundary();
 	}
 	else if (parameters.simulationType == 1) {
-		solver.initBoundaries();
-		solver.initFluid();
+		//solver.initBoundaries();
+		//solver.initFluid();
 		if (parameters.rigidBodyType == "cubes") {
 			solver.initRigidCube();
+
+			for (auto& body : solver.getRigidBodies()) {
+				for (auto& p : body.getOuterParticles()) {
+					p.parentBody = &body;
+				}
+			}
 		}
 		else if (parameters.rigidBodyType == "cylinder") {
 			solver.initRigidCylinder();
@@ -49,6 +55,15 @@ void Initialization(Solver& solver) {
 		else if (parameters.rigidBodyType == "cuboid") {
 			solver.initRigidCuboid();
 		} 
+		else if (parameters.rigidBodyType == "cubes_fall") {
+			solver.initRigidCube();
+
+			for (auto& body : solver.getRigidBodies()) {
+				for (auto& p : body.getOuterParticles()) {
+					p.parentBody = &body;
+				}
+			}
+		}
 		else {
 			solver.addRigidBody(solver.sampleOBJ());
 		}

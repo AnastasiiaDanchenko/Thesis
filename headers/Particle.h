@@ -33,6 +33,7 @@ public:
 	// Rigid body
     RigidBody* parentBody;
 	Eigen::Vector3d relativePosition;
+    double artificialDensity;
     double artificialVolume;
 };
 

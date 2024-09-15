@@ -36,7 +36,7 @@
     },
     "simulation type": 1,
     "slicing plane": 380,
-    "body type": "cuboid",
+    "body type": "cubes_fall",
     "rigid bodies": [
       {
         "type": "cubes",
@@ -56,6 +56,11 @@
       {
         "type": "cylinder",
         "density": 1500.0,
+        "path": ""
+      },
+      {
+        "type": "cubes_fall",
+        "density": 1000.0,
         "path": ""
       }
     ]

@@ -73,6 +73,7 @@ public:
 
 	// Rigid bodies kinematics
 	void initRigidCube();
+	void initRigidCubesFalling();
 	void initRigidCuboid();
 	void initRigidCylinder();
 	void addRigidBody(std::vector < std::vector<Particle>> body);
@@ -81,4 +82,5 @@ public:
 
 	// Rigid bodies dynamics
 	void computeArtificialDensity();
+	void computeRigidBodySourceTerm();
 };

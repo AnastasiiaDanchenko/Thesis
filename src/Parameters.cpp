@@ -3,7 +3,8 @@
 using json = nlohmann::json;
 
 Parameters::Parameters() : 
-    gravity(0.0, -9.8, 0.0),
+    //gravity(0.0, -9.8, 0.0),
+    gravity(0.0, 0.0, 0.0),
     gravity2D(0.0, -9.8) {}
 
 Parameters parameters;

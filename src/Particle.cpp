@@ -20,6 +20,7 @@ Particle::Particle() :
     diagonal(0.0f),
     pressureAcceleration(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
 	relativePosition(Eigen::Vector3d(0.0f, 0.0f, 0.0f)),
+	artificialDensity(1.0),
 	artificialVolume(0) {}
 
 Particle2D::Particle2D() :

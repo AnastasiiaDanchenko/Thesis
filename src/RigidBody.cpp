@@ -138,7 +138,7 @@ void RigidBody::computeParticleQuantities() {
 	this->torque = Eigen::Vector3d::Zero();
 
 	for (auto& p : outerParticles) {
-		this->force += p.mass * p.acceleration;
+		this->force += p.mass * p.acceleration - p.artificialVolume * p.pressureAcceleration;
 		this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration);
 	}
 }
