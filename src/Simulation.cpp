@@ -56,7 +56,7 @@ void Initialization(Solver& solver) {
 			solver.initRigidCuboid();
 		} 
 		else if (parameters.rigidBodyType == "cubes_fall") {
-			solver.initRigidCube();
+			solver.initRigidCubesFalling();
 
 			for (auto& body : solver.getRigidBodies()) {
 				for (auto& p : body.getOuterParticles()) {

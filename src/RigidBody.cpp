@@ -139,7 +139,9 @@ void RigidBody::computeParticleQuantities() {
 
 	for (auto& p : outerParticles) {
 		this->force += p.mass * p.acceleration - p.artificialVolume * p.pressureAcceleration;
-		this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration);
+		//this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration);
+		this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration - p.artificialVolume * 
+			p.pressureAcceleration);
 	}
 }
 

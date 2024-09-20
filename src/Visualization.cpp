@@ -281,18 +281,11 @@ void Visualize(Solver& solver) {
                 pushVertex(body.getPositionCM(), 0.0f, 1.0f, 0.0f, 1.0f);
                 for (auto& p : body.getOuterParticles()) {
 					if (p.position.z() <= parameters.slicingPlane) {
-						pushVertex(p.position, 1.0f, 0.0f, 0.0f, 1.0f);
-
-                        /*double hue = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.rigidBody.density, 
-                            0.0, 30.0);
-                        double saturation = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * 
-                            parameters.rigidBody.density, 0.0, 1.0);
-                        double value = mapColor(p.mass, 0.0, pow(parameters.spacing, 3) * parameters.rigidBody.density,
-                            1.0, 0.6);
+                        double hue = mapColor(p.artificialDensity, 0.0f, 1.0f, 100.0f, 0.0f);
                         double r, g, b;
-                        HSVtoRGB(&r, &g, &b, hue, saturation, value);
+                        HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                        pushVertex(p.position, r, g, b, 1.0f);*/
+						pushVertex(p.position, r, g, b, 1.0f);
 					}
                 }
             }

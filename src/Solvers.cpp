@@ -1007,6 +1007,7 @@ void Solver::compressionConvergence() {
         }
 
         // third step: compute source term for rigid body particles
+        // TODO : calculate divergence, add into pressure solver step
         computeRigidBodySourceTerm();
 
         // last step: compute fluid pressure and density error
@@ -1118,7 +1119,7 @@ void Solver::initRigidCube() {
     int depth = 6;
 	int width = depth, height = depth;
     //std::vector<double> factors = { 0.2, 0.5, 1, 2 };
-    std::vector<double> factors = { 0.2, 0.5};
+    std::vector<double> factors = { 0.5, 0.5};
 
     for (int cubeNb = 0; cubeNb < factors.size(); cubeNb++) {
         std::vector<Particle> body, contour;
@@ -1160,7 +1161,7 @@ void Solver::initRigidCube() {
 void Solver::initRigidCubesFalling() {
     int depth = 6;
     int width = depth, height = depth;
-    std::vector<double> factors = { 0.2, 0.5 };
+    std::vector<double> factors = { 0.5, 0.5 };
 
     for (int cubeNb = 0; cubeNb < factors.size(); cubeNb++) {
         std::vector<Particle> body, contour;
@@ -1172,10 +1173,25 @@ void Solver::initRigidCubesFalling() {
                     Particle p;
 
                     p.position = Eigen::Vector3d(
-                        (i + cubeNb * 10 + 3) * parameters.spacing,
-                        (j + 10) * parameters.spacing,
+                        (i + 10) * parameters.spacing,
+                        (j + cubeNb * 20 + 3) * parameters.spacing,
                         (k + 4) * parameters.spacing
                     );
+
+                    if (cubeNb == 1) {
+                        // rotate the cube by 45 degrees around the z axis and move it to the right
+                        Eigen::Matrix3d rotation;
+                        rotation << cos(M_PI / 4), -sin(M_PI / 4), 0,
+							sin(M_PI / 4), cos(M_PI / 4), 0,
+							0, 0, 1;
+                        p.position = rotation * p.position;
+						p.position.x() += 20 * parameters.spacing;
+                        
+                    }
+                    else {
+                        p.position.y() += 7 * parameters.spacing;
+                    }
+
                     p.isFluid = false;
                     p.isRigid = true;
                     p.ID = body.size();
@@ -1191,7 +1207,7 @@ void Solver::initRigidCubesFalling() {
 
         newBody.initializeRigidBody(body, contour, parameters.rigidBody.density * factors[cubeNb]);
         newBody.discardInnerParticles();
-        if (cubeNb == 0) newBody.setConstantVelocity(Eigen::Vector3d(10, 0, 0));
+        if (cubeNb == 1) newBody.setConstantVelocity(Eigen::Vector3d(0, -10, 0));
 
         this->rigidBodies.push_back(newBody);
     }
