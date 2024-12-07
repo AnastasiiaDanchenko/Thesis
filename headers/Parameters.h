@@ -55,6 +55,8 @@ struct Parameters {
 
 	double gamma;
 	double omega;
+	double gamma_b;
+	double mass_scale;
 	double avgDensity;
 	double densityErr;
 	double firstErr;

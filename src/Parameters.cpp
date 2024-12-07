@@ -3,8 +3,7 @@
 using json = nlohmann::json;
 
 Parameters::Parameters() : 
-    //gravity(0.0, -9.8, 0.0),
-    gravity(0.0, 0.0, 0.0),
+    gravity(0.0, -9.8, 0.0),
     gravity2D(0.0, -9.8) {}
 
 Parameters parameters;
@@ -58,6 +57,8 @@ void Parameters::readParameters() {
         if (dim_data.contains("viscosity")) viscosity = dim_data["viscosity"].get<double>();
         if (dim_data.contains("gamma")) gamma = dim_data["gamma"].get<double>();
         if (dim_data.contains("omega")) omega = dim_data["omega"].get<double>();
+        if (dim_data.contains("gamma_b")) gamma_b = dim_data["gamma_b"].get<double>();
+        if (dim_data.contains("mass_scale")) mass_scale = dim_data["mass_scale"].get<double>();
         if (dim_data.contains("error, %")) errThreshold = dim_data["error, %"].get<double>() * 0.01;
 
         if (dim_data.contains("surface_tension")) {

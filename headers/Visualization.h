@@ -23,4 +23,4 @@ void Visualize2D(Solver2D& solver);
 void VisualizeGhosts(Solver& solver);
 
 // Export for Blender
-void ExportPLY(Solver& solver);
+void ExportPLY(Solver& solver, int frame);

@@ -74,6 +74,7 @@ public:
 	// Rigid bodies kinematics
 	void initRigidCube();
 	void initRigidCubesFalling();
+	void initRigidCubesBounce();
 	void initRigidCuboid();
 	void initRigidCylinder();
 	void addRigidBody(std::vector < std::vector<Particle>> body);

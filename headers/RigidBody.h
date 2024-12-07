@@ -17,6 +17,8 @@ private:
 	Eigen::Matrix3d invInitialInertiaTensor; // ^ -1
 	double mass;
 	double density;
+	int nbContacts;
+	bool isBoundary;
 	
 public:
 	RigidBody();
@@ -35,11 +37,19 @@ public:
 
 	void setOuterParticles(std::vector<Particle> particles) { this->outerParticles = particles; }
 	void setConstantVelocity(Eigen::Vector3d velocity) { this->velocityCM = velocity; }
+	void setNbContacts(int num) { this->nbContacts = num; }
+	void setBoundary(bool isBoundary) { this->isBoundary = isBoundary; }
+	void setCenteOfMass(Eigen::Vector3d position) { this->positionCM = position; }
 
 	std::vector<Particle>& getOuterParticles() { return this->outerParticles; }
-	Eigen::Vector3d& getPositionCM() { return this->positionCM; }
 	double getMass() { return this->mass; }
-	Eigen::Matrix3d getInvInertiaTensor() { return this->invInertiaTensor; }
+	double getDensity() { return this->density; }
+	int getNbContacts() { return this->nbContacts; }
+	int getBoundary() { return this->isBoundary; }
+	Eigen::Vector3d& getPositionCM() { return this->positionCM; }
 	Eigen::Vector3d getVelocityCM() { return this->velocityCM; }
 	Eigen::Vector3d getAngularVelocity() { return this->angularVelocity; }
+	Eigen::Matrix3d getInvInertiaTensor() { return this->invInertiaTensor; }
+	Eigen::Vector3d getForce() { return this->force; }
+
 };

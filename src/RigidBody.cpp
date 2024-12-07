@@ -16,6 +16,8 @@ void RigidBody::initializeRigidBody(std::vector<Particle> particles, double body
 	this->innerParticles = particles;
 	this->density = bodyDensity;
 	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
+	this->nbContacts = 0;
+	this->isBoundary = false;
 
 	this->velocityCM = Eigen::Vector3d::Zero();
 	this->positionCM = Eigen::Vector3d::Zero();
@@ -41,6 +43,8 @@ RigidBody::RigidBody(std::vector<Particle> particles, double bodyDensity) {
 	this->innerParticles = particles;
 	this->density = bodyDensity;
 	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
+	this->nbContacts = 0;
+	this->isBoundary = false;
 
 	this->velocityCM = Eigen::Vector3d::Zero();
 	this->positionCM = Eigen::Vector3d::Zero();
@@ -66,6 +70,8 @@ void RigidBody::initializeRigidBody(std::vector<Particle> inner, std::vector<Par
 	this->innerParticles = inner;
 	this->outerParticles = outer;
 	this->density = bodyDensity;
+	this->nbContacts = 0;
+	this->isBoundary = false;
 
 	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
 
@@ -96,6 +102,8 @@ RigidBody::RigidBody(std::vector<Particle> inner, std::vector<Particle> outer, d
 	this->innerParticles = inner;
 	this->outerParticles = outer;
 	this->density = bodyDensity;
+	this->nbContacts = 0;
+	this->isBoundary = false;
 
 	this->mass = innerParticles.size() * this->density * pow(parameters.spacing, 3);
 
@@ -124,6 +132,8 @@ RigidBody::RigidBody(std::vector<Particle> inner, std::vector<Particle> outer, d
 
 RigidBody::RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, Eigen::Vector3d velocity,
 	Eigen::Matrix3d rotation, Eigen::Vector3d angularMomentum, Eigen::Matrix3d inertiaTensor, double mass) {
+	this->nbContacts = 0;
+	this->isBoundary = false;
 	this->outerParticles = particles;
 	this->positionCM = position;
 	this->velocityCM = velocity;
@@ -134,14 +144,14 @@ RigidBody::RigidBody(std::vector<Particle> particles, Eigen::Vector3d position, 
 }
 
 void RigidBody::computeParticleQuantities() {
-	this->force = this->mass * parameters.gravity;
-	this->torque = Eigen::Vector3d::Zero();
+	if (this->isBoundary == false) {
+		this->force = this->mass * parameters.gravity;
+		this->torque = Eigen::Vector3d::Zero();
 
-	for (auto& p : outerParticles) {
-		this->force += p.mass * p.acceleration - p.artificialVolume * p.pressureAcceleration;
-		//this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration);
-		this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * p.acceleration - p.artificialVolume * 
-			p.pressureAcceleration);
+		for (auto& p : outerParticles) {
+			this->force += p.mass * (p.acceleration - p.pressureAcceleration);
+			this->torque += (rotationMatrix * p.relativePosition).cross(p.mass * (p.acceleration - p.pressureAcceleration));
+		}
 	}
 }
 
@@ -163,8 +173,6 @@ void RigidBody::updateBodyQuantities() {
 	
 	// angular velocity w
 	this->angularVelocity = this->invInertiaTensor * this->angularMomentum;
-
-	
 }
 
 void RigidBody::updateParticles() {
@@ -172,6 +180,7 @@ void RigidBody::updateParticles() {
 		p.position = rotationMatrix * p.relativePosition + positionCM;
 		p.velocity = angularVelocity.cross(rotationMatrix * p.relativePosition) + velocityCM;
 		p.acceleration = Eigen::Vector3d::Zero();
+
 	}
 }
 

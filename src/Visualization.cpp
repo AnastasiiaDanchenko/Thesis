@@ -8,6 +8,7 @@ const int IMGUI_WINDOW_WIDTH = 300;
 
 bool isSimulationRunning = false;
 int simulationType = 0;
+int outputFrame = 0;
 
 typedef enum {
     POSITION_ATTRIBUTE = 0,
@@ -163,6 +164,64 @@ void clearBuffers() {
     verticesCount = 0;
 }
 
+void ExportPLY(Solver& solver, int frame) {
+    double scaleFactor = 0.01;
+
+    std::string fileName = "output/armadillo/fluid_" + std::to_string(frame) + ".ply";
+    std::ofstream file(fileName);
+
+    if (!file.is_open()) {
+        std::cerr << "Failed to open .ply file for writing." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    file << "ply" << std::endl;
+    file << "format ascii 1.0" << std::endl;
+    file << "element vertex " <<
+        particles.size() << std::endl;
+    file << "property float x" << std::endl;
+    file << "property float y" << std::endl;
+    file << "property float z" << std::endl;
+    file << "end_header" << std::endl;
+
+    for (auto& p : particles) {
+		if (p.isFluid) {
+            file << p.position.x() * scaleFactor << " " <<
+                p.position.z() * scaleFactor << " " <<
+                p.position.y() * scaleFactor << std::endl;
+        }
+    }
+    file.close();
+
+    // skip container export
+	for (int i = 1; i < solver.getRigidBodies().size(); i++) {
+		auto& body = solver.getRigidBodies()[i];
+		fileName = "output/armadillo/body" + std::to_string(i) + "_"  + std::to_string(frame) + ".ply";
+        std::ofstream file(fileName);
+
+        if (!file.is_open()) {
+            std::cerr << "Failed to open .ply file for writing." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        file << "ply" << std::endl;
+        file << "format ascii 1.0" << std::endl;
+		file << "element vertex " << body.getOuterParticles().size() << std::endl;
+        file << "property float x" << std::endl;
+        file << "property float y" << std::endl;
+        file << "property float z" << std::endl;
+        file << "end_header" << std::endl;
+
+        for (auto& p : body.getOuterParticles()) {
+            file << p.position.x() * scaleFactor << " " <<
+                p.position.z() * scaleFactor << " " <<
+                p.position.y() * scaleFactor << std::endl;
+        }
+		file.close();
+    }
+
+}
+
 void Visualize(Solver& solver) {
     // Initialize GLFW
     if (!glfwInit()) {
@@ -177,7 +236,7 @@ void Visualize(Solver& solver) {
 
     // Create a window
     GLFWwindow* window = glfwCreateWindow(
-        IMGUI_WINDOW_WIDTH + parameters.windowSize.width, parameters.windowSize.height, 
+        IMGUI_WINDOW_WIDTH + parameters.windowSize.width + 200, parameters.windowSize.height, 
         "SPH solver in 3D", nullptr, nullptr
     );
 
@@ -215,7 +274,7 @@ void Visualize(Solver& solver) {
     glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
 
     // Shader inputs were here
-    Camera camera(parameters.windowSize.width, parameters.windowSize.height, parameters.windowSize.depth);
+    Camera camera(parameters.windowSize.width + 200, parameters.windowSize.height, parameters.windowSize.depth);
 
     // Initialize the buffers
     initBuffers();
@@ -250,7 +309,7 @@ void Visualize(Solver& solver) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width, parameters.windowSize.height);
+        glViewport(IMGUI_WINDOW_WIDTH, 0, parameters.windowSize.width + 200, parameters.windowSize.height);
 
         for (auto p : particles) {
             if (p.position.z() <= parameters.slicingPlane) {
@@ -271,22 +330,27 @@ void Visualize(Solver& solver) {
                     double r, g, b;
                     HSVtoRGB(&r, &g, &b, hue, saturation, value);
 
-                    pushVertex(p.position, r, g, b, 0.3f);
+                    pushVertex(p.position, r, g, b, 1.f);
                 }
             }
 		}
 
         if (parameters.simulationType != 0) {
             for (auto& body : solver.getRigidBodies()) {
-                pushVertex(body.getPositionCM(), 0.0f, 1.0f, 0.0f, 1.0f);
-                for (auto& p : body.getOuterParticles()) {
-					if (p.position.z() <= parameters.slicingPlane) {
-                        double hue = mapColor(p.artificialDensity, 0.0f, 1.0f, 100.0f, 0.0f);
-                        double r, g, b;
-                        HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
-
-						pushVertex(p.position, r, g, b, 1.0f);
-					}
+                 //Different color for boundary and rigids
+                if (body.getBoundary()) {
+					//for (auto& p : body.getOuterParticles()) {
+					//	if (p.position.z() <= parameters.slicingPlane) {
+					//		pushVertex(p.position, 0.6, 0.4, 0.3, 1.0f);
+					//	}
+					//}
+                }
+                else {
+                    for (auto& p : body.getOuterParticles()) {
+                        if (p.position.z() <= parameters.slicingPlane) {
+                            pushVertex(p.position, 0.16, 0.9, 0.4, 1.0f);
+                        }
+                    }
                 }
             }
         }
@@ -295,7 +359,7 @@ void Visualize(Solver& solver) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         camera.Inputs(window);
-        camera.Matrix(parameters.windowSize.width, parameters.windowSize.height, parameters.windowSize.depth, shader);
+        camera.Matrix(parameters.windowSize.width + 200, parameters.windowSize.height, parameters.windowSize.depth, shader);
 
         glPointSize(parameters.spacing / 1.25);
         glEnable(GL_DEPTH_TEST);
@@ -335,6 +399,13 @@ void Visualize(Solver& solver) {
         ImGui::Text("\Density Error, %%: %f", parameters.densityErr / parameters.restDensity * 100);
         ImGui::Text("\Density Error before PPE, %%: %f", parameters.firstErr / parameters.restDensity * 100);
         ImGui::Text("\Number of iterations (l): %d", parameters.nbIterations);
+
+        float tempSlice = static_cast<float>(parameters.slicingPlane);
+        ImGui::Text("\Slicing plane:");
+        if (ImGui::SliderFloat("##Slicing plane", &tempSlice, 0, parameters.windowSize.depth)) {
+            parameters.slicingPlane = static_cast<double>(tempSlice);
+        }
+
         ImGui::End();
 
         ImGui::SetNextWindowPos(ImVec2(0, parameters.windowSize.height - 150));
@@ -350,6 +421,10 @@ void Visualize(Solver& solver) {
         }
         if (ImGui::Button("Move forward one time step")) { SimulationIISPH(solver); }
         if (ImGui::Button("Start moving boundary")) { solver.initMovingBoundary(); }
+        if (ImGui::Button("Export frame")) {
+			ExportPLY(solver, outputFrame);
+			outputFrame++;
+        }
         ImGui::End();
 
         ImGui::Render();
@@ -483,11 +558,6 @@ void Visualize2D(Solver2D& solver) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    //create save directory
-    /*int count = 0;
-    std::string path = "output/" + std::to_string(parameters.particlesPerDimension.x * parameters.particlesPerDimension.y) + "_" + std::to_string(ERR_THRESHOLD);
-    std::filesystem::create_directories(path);*/
-
     Grid2D grid2D(parameters.spacing * 2);
 
     // event loop
@@ -508,23 +578,15 @@ void Visualize2D(Solver2D& solver) {
 
         for (auto& p : particles2D) {
             if (p.isFluid) {
-                /*double speed = magnitude2D(p.velocity);
+                double speed = magnitude2D(p.velocity);
                 double hue = mapColor(speed, 0.0f, 100.0f, 240.0f, 0.0f);
                 double r, g, b;
                 HSVtoRGB(&r, &g, &b, hue, 1.0f, 1.0f);
 
-                pushVertex2D(p.position.x(), p.position.y(), r, g, b);*/
-
-                bool isNeighbor = false;
-                for (auto& n : p.neighbors) {
-                    if (n == &particles2D[parameters.visualizeNeighbors]) { isNeighbor = true; break; }
-                }
-                if (p.ID == parameters.visualizeNeighbors) { pushVertex2D(p.position.x(), p.position.y(), 1.0f, 1.0f, 0.0f); }
-                else if (isNeighbor) { pushVertex2D(p.position.x(), p.position.y(), 0.0f, 1.0f, 0.0f); }
-                else { pushVertex2D(p.position.x(), p.position.y(), 0.2f, 0.5f, 1.0f); }
+                pushVertex2D(p.position.x(), p.position.y(), r, g, b);
             }
             else {
-                double hue = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
+                double hue = mapColor(p.mass, 7000.0, parameters.spacing * parameters.spacing *
                     parameters.restDensity, 0.0, 30.0);
                 double saturation = mapColor(p.mass, 0.0, parameters.spacing * parameters.spacing * 
                     parameters.restDensity, 0.0, 1.0);
@@ -541,10 +603,9 @@ void Visualize2D(Solver2D& solver) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glPointSize(parameters.spacing * 2); // Set the point size
+        glPointSize(parameters.spacing * 2);
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
 
-        //set fixed position for imgui window
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImVec2(IMGUI_WINDOW_WIDTH, parameters.windowSize.height - 100));
 
@@ -621,13 +682,6 @@ void Visualize2D(Solver2D& solver) {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        /*std::stringstream filenameStream;
-        filenameStream << path << "/" << count << ".png";
-        std::string filename = filenameStream.str();
-        saveImage(filename.c_str(), window);
-
-        count++;*/
     }
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -731,7 +785,7 @@ void VisualizeGhosts(Solver& solver) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glPointSize(parameters.spacing); // Set the point size
+        glPointSize(parameters.spacing);
         glDrawArraysInstanced(GL_POINTS, 0, 1, verticesCount);
 
         //set fixed position for imgui window
@@ -797,75 +851,4 @@ void VisualizeGhosts(Solver& solver) {
 
     glDeleteProgram(shader);
     glfwTerminate();
-}
-
-void ExportPLY(Solver& solver) {
-    int nbFrames = 5000;
-    Grid grid(parameters.spacing * 2);
-
-    std::cout << "Exporting simulation frames to .ply files..." << std::endl;
-
-    int nbRigidParticles = 0;
-    for (auto& body : solver.getRigidBodies()) {
-        nbRigidParticles += body.getOuterParticles().size();
-	}
-
-    for (int i = 0; i < nbFrames; i++) {
-		SimulationIISPH(solver);
-
-        double scaleFactor = 0.01;
-		
-        std::string fileName = "output/blender_frames/damBreak_" + std::to_string(i) + ".ply";
-        std::ofstream file(fileName);
-
-        if (!file.is_open()) {
-			std::cerr << "Failed to open .ply file for writing." << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-        file << "ply" << std::endl;
-		file << "format ascii 1.0" << std::endl;
-		file << "element vertex " << //particles.size() + nbRigidParticles << std::endl;
-            parameters.particlesPerDimension.x * 
-            parameters.particlesPerDimension.y * 
-			parameters.particlesPerDimension.z + nbRigidParticles << std::endl;
-		file << "property float x" << std::endl;
-		file << "property float y" << std::endl;
-		file << "property float z" << std::endl;
-		file << "end_header" << std::endl;
-
-		for (auto& p : particles) {
-            if (p.isFluid) {
-                file << p.position.x() * scaleFactor << " " << 
-                        p.position.z() * scaleFactor << " " << 
-                        p.position.y() * scaleFactor << std::endl;
-            }
-		}
-
-        for (auto& body : solver.getRigidBodies()) {
-			for (auto& p : body.getOuterParticles()) {
-				file << p.position.x() * scaleFactor << " " << 
-						p.position.z() * scaleFactor << " " << 
-						p.position.y() * scaleFactor << std::endl;
-			}
-        }
-
-		file.close();
-
-        int barWidth = 50;
-        float progress = static_cast<float>(i + 1) / nbFrames;
-        std::cout << "[";
-        int pos = static_cast<int>(barWidth * progress);
-
-        for (int j = 0; j < barWidth; ++j) {
-            if (j < pos) std::cout << "=";
-            else if (j == pos) std::cout << ">";
-            else std::cout << " ";
-        }
-
-        std::cout << "] " << std::setw(3) << static_cast<int>(progress * 100.0) << " %\r";
-        std::cout.flush();
-	}
-
-    std::cout << "\nExported " << nbFrames << " frames to .ply files." << std::endl;
 }
